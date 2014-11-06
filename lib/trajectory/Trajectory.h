@@ -88,4 +88,4 @@ class Trajectory
         bool m_sorted = false;   //<! Flag if Frames require sorting
     };
 
-#endif
+#endif //__TRAJECTORY_H__

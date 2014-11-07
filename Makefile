@@ -3,7 +3,7 @@ TARGET := libmdalyzer
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
 LD_FLAGS := 
 
-MODULES := computes extern frames python trajectory
+MODULES := computes extern frames python trajectory utils
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
 

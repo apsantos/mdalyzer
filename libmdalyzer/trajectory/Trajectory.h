@@ -1,12 +1,12 @@
+#ifndef __TRAJECTORY_H__
+#define __TRAJECTORY_H__
+
 #include <vector>
 #include <string>
 #include <map>
 #include <boost/shared_ptr.hpp>
 #include "Frame.h"
 #include "Compute.h"
-
-#ifndef __TRAJECTORY_H__
-#define __TRAJECTORY_H__
 
 class Trajectory
     {
@@ -50,7 +50,7 @@ class Trajectory
         /*!
          * Get a Frame at time
          */
-        boost::shared_ptr<Frame> getFrame(double time) const;
+        boost::shared_ptr<Frame> getFrame(double time);
         
         /*!
          * Time order frames in the Trajectory
@@ -80,7 +80,7 @@ class Trajectory
         
     private:
         std::map< std::string, boost::shared_ptr<Compute> > m_computes; //!< Hold the Computes
-        std::vector< boost::shared_ptr<Frame> > m_frames;               //!< Hold the Frames
+        std::map< double, boost::shared_ptr<Frame> > m_frames;          //!< Hold the Frames
         
         bool m_sorted;   //<! Flag if Frames require sorting
     };

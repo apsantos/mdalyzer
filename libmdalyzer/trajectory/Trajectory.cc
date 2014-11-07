@@ -5,6 +5,47 @@ Trajectory::Trajectory()
     {
     }
 
+void Trajectory::addFrame(boost::shared_ptr<Frame> frame)
+    {
+    double frame_time = frame->getTime();
+    std::map< double, boost::shared_ptr<Frame> >::iterator frame_i = m_frames.find(frame_time);
+    if (frame_i == m_frames.end())
+        {
+        m_frames[frame_time] = frame;
+        }
+    else
+        {
+        // Do some type of error handling, like throw an exception
+        }
+    }
+
+void Trajectory::removeFrame(double time)
+    {
+    std::map< double, boost::shared_ptr<Frame> >::iterator frame_i = m_frames.find(time);
+    if (frame_i != m_frames.end())
+        {
+        m_frames.erase(frame_i);
+        }
+    else
+        {
+        // Doesn't exist, can't delete
+        }
+    }
+
+boost::shared_ptr<Frame> Trajectory::getFrame(double time)
+    {
+    std::map< double, boost::shared_ptr<Frame> >::iterator frame_i = m_frames.find(time);
+    if (frame_i != m_frames.end())
+        {
+        return m_frames[time];
+        }
+    else
+        {
+        // Doesn't exist, raise hell and return a null pointer
+        return boost::shared_ptr<Frame>(); // null ptr
+        }
+    }
+
 /*!
  * \param compute Shared pointer to new Compute
  * \param name String key for the Compute, generated on Python level
@@ -76,7 +117,7 @@ void Trajectory::analyze()
                 {
                 if (cur_compute->second->shouldCompute())
                     {
-                    cur_compute->second->run();
+                    cur_compute->second->evaluate();
                     }
                 }
             }

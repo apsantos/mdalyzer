@@ -6,6 +6,8 @@ class Frame
     public:
         Frame();
         ~Frame();
+        
+        virtual double getTime() const = 0;
     };
 
 #endif //__FRAME_H__

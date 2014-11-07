@@ -1,14 +1,14 @@
 CC := g++
-TARGET := libmdalyzer.so
+TARGET := libmdalyzer
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
 LD_FLAGS := -lboost_program_options-mt
 
-MODULES := computes extern parsers python trajectory
-SRC_DIR := $(addprefix lib/,$(MODULES))
+MODULES := computes extern frames python trajectory
+SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
 
 SRC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
-OBJ := $(patsubst lib/%.cc,build/%.o,$(SRC))
+OBJ := $(patsubst $(TARGET)/%.cc,build/%.o,$(SRC))
 INCLUDES := $(addprefix -I,$(SRC_DIR))
 
 vpath %.cc $(SRC_DIR)
@@ -20,9 +20,9 @@ endef
 
 .PHONY: all checkdirs clean
 
-all: checkdirs build/$(TARGET)
-build/$(TARGET): $(OBJ)
-	$(CC) -v -shared $(CC_FLAGS) $^ -o $@ $(LD_FLAGS)
+all: checkdirs build/$(TARGET).so
+build/$(TARGET).so: $(OBJ)
+	$(CC) -shared $(CC_FLAGS) $^ -o $@ $(LD_FLAGS)
 checkdirs: $(BUILD_DIR)
 
 $(BUILD_DIR):

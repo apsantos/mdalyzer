@@ -7,8 +7,8 @@ class Compute
         Compute();
         ~Compute();
         
-        bool shouldCompute();
-        void compute();
+        bool shouldCompute() const;
+        void run();
     };
 
 #endif //__COMPUTE_H__

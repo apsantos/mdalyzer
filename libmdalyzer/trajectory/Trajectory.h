@@ -1,5 +1,6 @@
 #include <vector>
 #include <string>
+#include <map>
 #include <boost/shared_ptr.hpp>
 #include "Frame.h"
 #include "Compute.h"
@@ -84,8 +85,8 @@ class Trajectory
         bool m_read_from_file; //!< Flag if trajectory should be read from file (true) or from Frames (false)
         
     private:
-        std::vector< boost::shared_ptr<Compute> > m_computes;       //!< Hold the Computes
-        std::vector< boost::shared_ptr<Frame> > m_frames;           //!< Hold the Frames
+        std::map< std::string, boost::shared_ptr<Compute> > m_computes; //!< Hold the Computes
+        std::vector< boost::shared_ptr<Frame> > m_frames;               //!< Hold the Frames
         
         bool m_sorted;   //<! Flag if Frames require sorting
     };

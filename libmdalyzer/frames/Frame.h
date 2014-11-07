@@ -73,22 +73,27 @@ class Frame
          */
         void setPositions(const std::vector< Vector3<double> >& positions)
             {
+            m_has_positions = true;
             m_positions = positions;
             }
         void setVelocities(const std::vector< Vector3<double> >& velocities)
             {
+            m_has_velocities = true;
             m_velocities = velocities;
             }
         void setTypes(const std::vector<std::string>& types)
             {
+            m_has_types = true;
             m_types = types;
             }
         void setDiameters(const std::vector<double>& diameters)
             {
+            m_has_diameters = true;
             m_diameters = diameters;
             }
         void setMasses(const std::vector<double>& masses)
             {
+            m_has_masses = true;
             m_masses = masses;
             }
     
@@ -106,7 +111,4 @@ class Frame
         bool m_has_velocities;
         bool m_has_types;
         bool m_has_diameters;
-        bool m_has_masses;
-    };
-
-#endif //__FRAME_H__
+        bool m_has_m

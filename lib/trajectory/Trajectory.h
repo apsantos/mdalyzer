@@ -1,8 +1,10 @@
 #include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
+#include "Frame.h"
+#include "Compute.h"
 
-#inndef __TRAJECTORY_H__
+#ifndef __TRAJECTORY_H__
 #define __TRAJECTORY_H__
 
 class Trajectory
@@ -79,13 +81,13 @@ class Trajectory
         void setComputePeriod(const std::string& name, double period);
         
     protected:
-        bool m_read_from_file = false; //!< Flag if trajectory should be read from file (true) or from Frames (false)
+        bool m_read_from_file; //!< Flag if trajectory should be read from file (true) or from Frames (false)
         
     private:
         std::vector< boost::shared_ptr<Compute> > m_computes;       //!< Hold the Computes
         std::vector< boost::shared_ptr<Frame> > m_frames;           //!< Hold the Frames
         
-        bool m_sorted = false;   //<! Flag if Frames require sorting
+        bool m_sorted;   //<! Flag if Frames require sorting
     };
 
 #endif //__TRAJECTORY_H__

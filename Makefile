@@ -1,7 +1,7 @@
 CC := g++
 TARGET := libmdalyzer
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
-LD_FLAGS := -lboost_program_options-mt
+LD_FLAGS := 
 
 MODULES := computes extern frames python trajectory
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))

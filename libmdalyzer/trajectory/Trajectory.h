@@ -12,7 +12,7 @@ class Trajectory
     {
     public:
         Trajectory();
-        virtual ~Trajectory();
+        virtual ~Trajectory() {};
         
         /*!
          * Main method to analyze the Trajectory, calling all attached Computes for all Frames
@@ -26,12 +26,10 @@ class Trajectory
         void readAll();
         
         /*!
-         * Read the next Frame from a single file, to be abstracted for specific file formats.
-         * Any inputs should be taken care of in the constructor or by adding additional input methods
-         * The constructor should queue the file to be read, and getNextFrame() should march forward through the
-         * trajectory frame-by-frame each time it is called.
+         * Read the next Frame, can be abstracted for single file trajectories.
+         * By default, the next frame in the ordered frame list is returned.
          */
-        virtual boost::shared_ptr<Frame> getNextFrame() = 0;
+        virtual boost::shared_ptr<Frame> getNextFrame();
         
         /*!
          * Add a Frame to the Trajectory, asserting it exists occurs at a unique time.
@@ -62,9 +60,9 @@ class Trajectory
         void sortFrames();  
         
         /*!
-         * Add a Compute that tries to calculate every period in (simulation) time
+         * Add a Compute that will perform a calculation every certain number of frames
          */
-        void addCompute(boost::shared_ptr<Compute> compute, const std::string& name, double period);
+        void addCompute(boost::shared_ptr<Compute> compute, const std::string& name);
         
         /*!
          * Remove a Compute
@@ -74,12 +72,8 @@ class Trajectory
         /*!
          * Get a Compute
          */
-        boost::shared_ptr<Compute> getCompute(const std::string& name) const;
+        boost::shared_ptr<Compute> getCompute(const std::string& name);
         
-        /*!
-         * Update period for Compute
-         */
-        void setComputePeriod(const std::string& name, double period);
         
     protected:
         bool m_read_from_file; //!< Flag if trajectory should be read from file (true) or from Frames (false)

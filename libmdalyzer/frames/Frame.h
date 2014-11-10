@@ -6,6 +6,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "VectorMath.h"
+#include "TriclinicBox.h"
 
 class Frame
     {
@@ -13,7 +14,6 @@ class Frame
         Frame();
         virtual ~Frame();
         
-        virtual double getTimeFromFile();
         virtual void readFromFile();
         
         /*!
@@ -21,7 +21,7 @@ class Frame
          */
         double getTime()
             {
-            return (m_time_set) ? m_time : getTimeFromFile();
+            return m_time;
             }
         std::vector< Vector3<double > > getPositions()
             {
@@ -43,10 +43,18 @@ class Frame
             {
             return m_masses;
             }
+        TriclinicBox getBox()
+            {
+            return m_box;
+            }
 
         /*!
          * Checkers for data
          */
+        bool hasTime()
+            {
+            return m_has_time;
+            }
         bool hasPositions()
             {
             return m_has_positions;
@@ -67,10 +75,18 @@ class Frame
             {
             return m_has_positions;
             }
+        bool hasBox()
+            {
+            return m_has_box;
+            }
         
         /*!
          * Set methods for frame properties
          */
+        void setTime(double time)
+            {
+            m_time = time;
+            }
         void setPositions(const std::vector< Vector3<double> >& positions)
             {
             m_has_positions = true;
@@ -96,6 +112,11 @@ class Frame
             m_has_masses = true;
             m_masses = masses;
             }
+        void setBox(const TriclinicBox& box)
+            {
+            m_has_box = true;
+            m_box = box;
+            }
     
     protected:
         double m_time;
@@ -105,10 +126,15 @@ class Frame
         std::vector<double> m_diameters;
         std::vector<double> m_masses;
         
-    private:
-        bool m_time_set;
+        TriclinicBox m_box;
+
+        bool m_has_time;
         bool m_has_positions;
         bool m_has_velocities;
         bool m_has_types;
         bool m_has_diameters;
-        bool m_has_m
+        bool m_has_masses;
+        bool m_has_box;
+    };
+    
+#endif //__FRAME_H__

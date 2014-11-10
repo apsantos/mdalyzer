@@ -32,32 +32,25 @@ class Trajectory
         virtual boost::shared_ptr<Frame> getNextFrame();
         
         /*!
-         * Add a Frame to the Trajectory, asserting it exists occurs at a unique time.
-         * This allows us to build a Trajectory from snapshot-style data (e.g. XML, PDB).
+         * Add a Frame to the Trajectory. This allows us to build a Trajectory from snapshot-style data (e.g. XML, PDB).
          *
          * By adding a Frame, we don't actually load the whole file into memory yet, we just keep the minimal
-         * information that we need to read it when it comes time to actually load it. The Frame must supply a time
-         * though, which is either user-specified or obtained by peeking into the file, since time is usually
-         * one of the earlier lines
+         * information that we need to read it when it comes time to actually load it. The Trajectory will later
+         * load all Frames and then validate that they occur at a unique time and sort them.
          */
         void addFrame(boost::shared_ptr<Frame> frame);
-        
-        /*!
-         * Remove a Frame at time
-         */
-        void removeFrame(double time);
-        
-        /*!
-         * Get a Frame at time
-         */
-        boost::shared_ptr<Frame> getFrame(double time);
         
         /*!
          * Time order frames in the Trajectory
          * There is no guarantee that the user will provide the frames sorted, but we expect a Trajectory to
          * have the right time ordering when we do computations, so we must sort it ourselves once.
          */
-        void sortFrames();  
+        void sortFrames();
+        
+        /*!
+         * Perform a sanity check on frames to ensure there is no time duplication and that they are properly ordered
+         */
+        void validate();
         
         /*!
          * Add a Compute that will perform a calculation every certain number of frames
@@ -80,9 +73,18 @@ class Trajectory
         
     private:
         std::map< std::string, boost::shared_ptr<Compute> > m_computes; //!< Hold the Computes
-        std::map< double, boost::shared_ptr<Frame> > m_frames;          //!< Hold the Frames
+        std::vector< boost::shared_ptr<Frame> > m_frames;          //!< Hold the Frames
         
         bool m_sorted;   //<! Flag if Frames require sorting
+        
+        //! Struct wrapper to sort Frame pointers based on time
+        struct time_less_than
+        {
+        inline bool operator() (boost::shared_ptr<Frame> f1, boost::shared_ptr<Frame> f2)
+            {
+            return (f1->getTime() < f2->getTime());
+            }
+        };
     };
 
 #endif //__TRAJECTORY_H__

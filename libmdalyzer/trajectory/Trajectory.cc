@@ -7,43 +7,7 @@ Trajectory::Trajectory()
 
 void Trajectory::addFrame(boost::shared_ptr<Frame> frame)
     {
-    double frame_time = frame->getTime();
-    std::map< double, boost::shared_ptr<Frame> >::iterator frame_i = m_frames.find(frame_time);
-    if (frame_i == m_frames.end())
-        {
-        m_frames[frame_time] = frame;
-        }
-    else
-        {
-        // Do some type of error handling, like throw an exception
-        }
-    }
-
-void Trajectory::removeFrame(double time)
-    {
-    std::map< double, boost::shared_ptr<Frame> >::iterator frame_i = m_frames.find(time);
-    if (frame_i != m_frames.end())
-        {
-        m_frames.erase(frame_i);
-        }
-    else
-        {
-        // Doesn't exist, can't delete
-        }
-    }
-
-boost::shared_ptr<Frame> Trajectory::getFrame(double time)
-    {
-    std::map< double, boost::shared_ptr<Frame> >::iterator frame_i = m_frames.find(time);
-    if (frame_i != m_frames.end())
-        {
-        return m_frames[time];
-        }
-    else
-        {
-        // Doesn't exist, raise hell and return a null pointer
-        return boost::shared_ptr<Frame>(); // null ptr
-        }
+    m_frames.push_back(frame);
     }
 
 /*!
@@ -103,23 +67,54 @@ boost::shared_ptr<Compute> Trajectory::getCompute(const std::string& name)
         }
     }
 
+void Trajectory::sortFrames()
+    {
+    std::sort(m_frames.begin(), m_frames.end(), time_less_than());
+    }
+
 void Trajectory::analyze()
     {
-    boost::shared_ptr<Frame> cur_frame;
     std::map< std::string, boost::shared_ptr<Compute> >::iterator cur_compute;
     
     // main execution loop, so we want to catch exceptions as they are thrown and abort
     try
         {
-        while( (cur_frame = getNextFrame()) )
+        // load frames into memory
+        for (unsigned int cur_frame=0; cur_frame != m_frames.size(); ++cur_frame)
             {
-            for (cur_compute = m_computes.begin(); cur_compute != m_computes.end(); ++cur_compute)
+            m_frames[cur_frame]->readFromFile();
+            }
+        
+        // sort and validate the frames
+        sortFrames();
+        double last_frame_time = 0.;
+        for (unsigned int cur_frame=0; cur_frame != m_frames.size(); ++cur_frame)
+            {
+            // check for time ordering
+            if (cur_frame > 0 && m_frames[cur_frame]->getTime() <= last_frame_time)
                 {
-                if (cur_compute->second->shouldCompute())
-                    {
-                    cur_compute->second->evaluate();
-                    }
+                // error handling, throw an exception and bail
                 }
+                
+            // check for number of particle staying the same if needed
+            
+            // force type mapping to be the same
+            
+            last_frame_time = m_frames[cur_frame]->getTime();
+            }
+        
+        // enter the compute loop
+        // if computes should be cleaned up, they need to do this after they are done
+        for (cur_compute = m_computes.begin(); cur_compute != m_computes.end(); ++cur_compute)
+            {
+            // handle any internal initialization that needs to be done after initial construction
+            cur_compute->second->setup();
+            
+            // perform the evaluation
+            cur_compute->second->evaluate();
+            
+            // do internal cleanup if needed (NOT destruction)
+            cur_compute->second->cleanup();
             }
         }
     catch (std::exception const & e)

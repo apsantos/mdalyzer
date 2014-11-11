@@ -1,6 +1,8 @@
 #ifndef __HOOMDXMLFRAME_H__
 #define __HOOMDXMLFRAME_H__
 
+#include <boost/python.hpp>
+
 #include "Frame.h"
 #include "pugixml.hpp"
 
@@ -8,7 +10,7 @@ class HOOMDXMLFrame : public Frame
     {
     public:
         HOOMDXMLFrame(const std::string& file);
-        ~HOOMDXMLFrame() {};
+        ~HOOMDXMLFrame();
         virtual void readFromFile();
         static float s_supported_hoomd_version;
         
@@ -19,4 +21,6 @@ class HOOMDXMLFrame : public Frame
         inline void tryParticlesFromNode(pugi::xml_node node);
     };
 
-#endif
+void export_HOOMDXMLFrame();
+
+#endif //__HOOMDXML_FRAME_H__

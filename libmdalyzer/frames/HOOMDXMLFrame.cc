@@ -8,6 +8,9 @@ HOOMDXMLFrame::HOOMDXMLFrame(const std::string& file)
     : m_file(file), m_num_particles(-1)
     {
     }
+HOOMDXMLFrame::~HOOMDXMLFrame()
+    {
+    }
 
 void HOOMDXMLFrame::readFromFile()
     {
@@ -18,7 +21,7 @@ void HOOMDXMLFrame::readFromFile()
         pugi::xml_node hoomd_xml = doc.child("hoomd_xml");
         
         float hoomd_version = hoomd_xml.attribute("version").as_float();
-        if (hoomd_version < s_supported_hoomd_version)
+        if (hoomd_version >= s_supported_hoomd_version)
             {
             // obtain the configuration and time
             pugi::xml_node config = hoomd_xml.child("configuration");
@@ -181,3 +184,11 @@ inline void HOOMDXMLFrame::tryParticlesFromNode(pugi::xml_node node)
                 }
         }
     }
+    
+void export_HOOMDXMLFrame()
+    {
+    using namespace boost::python;
+    class_<HOOMDXMLFrame, boost::shared_ptr<HOOMDXMLFrame>, bases<Frame> >
+    ("HOOMDXMLFrame", init< const std::string& >());
+    }
+    

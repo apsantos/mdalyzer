@@ -1,28 +1,31 @@
 CC := g++
-TARGET := libmdalyzer
+
+INSTALL_DIR := ~/apc_524/mdalyzer/tmp
+TARGET := mdalyzer
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
-LD_FLAGS := 
+LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L/usr/global/boost/1_55_0/lib/ -lboost_python -lpython2.7
+PYTHON_INCLUDE := -I/usr/include/python2.7
 
 MODULES := computes extern frames python trajectory utils
-SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
+SRC_DIR := $(addprefix lib$(TARGET)/,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
 
 SRC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
-OBJ := $(patsubst $(TARGET)/%.cc,build/%.o,$(SRC))
-INCLUDES := $(addprefix -I,$(SRC_DIR))
+OBJ := $(patsubst lib$(TARGET)/%.cc,build/%.o,$(SRC))
+INCLUDES := $(addprefix -I,$(SRC_DIR)) $(PYTHON_INCLUDE)
 
 vpath %.cc $(SRC_DIR)
 
 define make-goal
 $1/%.o: %.cc
-	$(CC) $(CC_FLAGS) $(INCLUDES) -c $$< -o $$@
+	$(CC) $(INCLUDES) $(CC_FLAGS) -c $$< -o $$@
 endef
 
-.PHONY: all checkdirs clean
+.PHONY: all checkdirs clean install
 
 all: checkdirs build/$(TARGET).so
 build/$(TARGET).so: $(OBJ)
-	$(CC) -shared $(CC_FLAGS) $^ -o $@ $(LD_FLAGS)
+	$(CC) $(LD_FLAGS) $^ -o $@
 checkdirs: $(BUILD_DIR)
 
 $(BUILD_DIR):
@@ -30,6 +33,10 @@ $(BUILD_DIR):
 
 clean:
 	@rm -rf $(BUILD_DIR)
+
+install:
+	@mkdir -p $(INSTALL_DIR)
+	@cp build/$(TARGET).so $(INSTALL_DIR)/
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
 

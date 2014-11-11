@@ -4,6 +4,9 @@ Trajectory::Trajectory()
     : m_read_from_file(false), m_sorted(false)
     {
     }
+Trajectory::~Trajectory()
+    {
+    }
 
 void Trajectory::addFrame(boost::shared_ptr<Frame> frame)
     {

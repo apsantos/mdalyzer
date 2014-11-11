@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <boost/python.hpp>
 
 #include "VectorMath.h"
 #include "TriclinicBox.h"
@@ -136,5 +137,6 @@ class Frame
         bool m_has_masses;
         bool m_has_box;
     };
-    
+
+void export_Frame();    
 #endif //__FRAME_H__

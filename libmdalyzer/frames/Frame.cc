@@ -5,3 +5,18 @@ Frame::Frame()
     m_has_diameters(false), m_has_masses(false)
     {
     }
+Frame::~Frame()
+    {
+    }
+
+void Frame::readFromFile()
+    {
+    }
+    
+void export_Frame()
+    {
+    using namespace boost::python;
+    class_<Frame, boost::shared_ptr<Frame> >("Frame")
+    .def("readFromFile",&Frame::readFromFile)
+    .def("getTime",&Frame::getTime);
+    }

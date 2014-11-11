@@ -12,7 +12,7 @@ class Trajectory
     {
     public:
         Trajectory();
-        virtual ~Trajectory() {};
+        virtual ~Trajectory();
         
         /*!
          * Main method to analyze the Trajectory, calling all attached Computes for all Frames
@@ -24,12 +24,6 @@ class Trajectory
          * This could be useful for some types of Compute
          */
         void readAll();
-        
-        /*!
-         * Read the next Frame, can be abstracted for single file trajectories.
-         * By default, the next frame in the ordered frame list is returned.
-         */
-        virtual boost::shared_ptr<Frame> getNextFrame();
         
         /*!
          * Add a Frame to the Trajectory. This allows us to build a Trajectory from snapshot-style data (e.g. XML, PDB).

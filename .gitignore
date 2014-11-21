@@ -1,3 +1,6 @@
 *.DS_Store
 build*
 tmp*
+doc/*.aux
+doc/*.log
+doc/*.synctex.gz

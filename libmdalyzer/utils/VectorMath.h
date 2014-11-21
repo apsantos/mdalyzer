@@ -1,5 +1,5 @@
-#ifndef __VECTOR_MATH_H__
-#define __VECTOR_MATH_H__
+#ifndef MDALYZER_UTILS_VECTOR_MATH_H_
+#define MDALYZER_UTILS_VECTOR_MATH_H_
 
 
 template <typename T>
@@ -23,4 +23,4 @@ struct Vector3
         }
     };
 
-#endif //__VECTOR_MATH_H__
+#endif //MDALYZER_UTILS_VECTOR_MATH_H_

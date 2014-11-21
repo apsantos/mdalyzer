@@ -1,5 +1,5 @@
-#ifndef __HOOMDXMLFRAME_H__
-#define __HOOMDXMLFRAME_H__
+#ifndef MDALYZER_FRAMES_HOOMDXMLFRAME_H_
+#define MDALYZER_FRAMES_HOOMDXMLFRAME_H_
 
 #include <boost/python.hpp>
 
@@ -23,4 +23,4 @@ class HOOMDXMLFrame : public Frame
 
 void export_HOOMDXMLFrame();
 
-#endif //__HOOMDXML_FRAME_H__
+#endif //MDALYZER_FRAMES_HOOMDXML_FRAME_H_

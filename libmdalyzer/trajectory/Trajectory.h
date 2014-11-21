@@ -1,9 +1,10 @@
-#ifndef __TRAJECTORY_H__
-#define __TRAJECTORY_H__
+#ifndef MDALYZER_TRAJECTORY_TRAJECTORY_H_
+#define MDALYZER_TRAJECTORY_TRAJECTORY_H_
 
 #include <vector>
 #include <string>
 #include <map>
+#include <boost/python.hpp>
 #include <boost/shared_ptr.hpp>
 #include "Frame.h"
 #include "Compute.h"
@@ -20,10 +21,11 @@ class Trajectory
         void analyze();
         
         /*!
-         * Force the whole trajectory into memory at one time
-         * This could be useful for some types of Compute
+         * Force the whole trajectory into memory at one time. This method defaults to reading all the added Frames,
+         * but can be overriden by derived classes to read a single input file at once into those Frames. We call
+         * read() at the start of each analysis().
          */
-        void readAll();
+        virtual void read();
         
         /*!
          * Add a Frame to the Trajectory. This allows us to build a Trajectory from snapshot-style data (e.g. XML, PDB).
@@ -63,22 +65,15 @@ class Trajectory
         
         
     protected:
-        bool m_read_from_file; //!< Flag if trajectory should be read from file (true) or from Frames (false)
+        bool m_must_read_from_file; //!< Flag if trajectory should be (re-)read from file
         
     private:
         std::map< std::string, boost::shared_ptr<Compute> > m_computes; //!< Hold the Computes
         std::vector< boost::shared_ptr<Frame> > m_frames;          //!< Hold the Frames
         
         bool m_sorted;   //<! Flag if Frames require sorting
-        
-        //! Struct wrapper to sort Frame pointers based on time
-        struct time_less_than
-        {
-        inline bool operator() (boost::shared_ptr<Frame> f1, boost::shared_ptr<Frame> f2)
-            {
-            return (f1->getTime() < f2->getTime());
-            }
-        };
     };
 
-#endif //__TRAJECTORY_H__
+void export_Trajectory();
+
+#endif // MDALYZER_TRAJECTORY_TRAJECTORY_H_

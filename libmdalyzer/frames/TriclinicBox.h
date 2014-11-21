@@ -1,5 +1,5 @@
-#ifndef __TRICLINIC_BOX_H__
-#define __TRICLINIC_BOX_H__
+#ifndef MDALYZER_FRAMES_TRICLINIC_BOX_H_
+#define MDALYZER_FRAMES_TRICLINIC_BOX_H_
 
 #include "VectorMath.h"
 
@@ -32,4 +32,4 @@ class TriclinicBox
         Vector3<double> m_tilt;
     };
 
-#endif
+#endif // MDALYZER_FRAMES_TRICLINIC_BOX_H_

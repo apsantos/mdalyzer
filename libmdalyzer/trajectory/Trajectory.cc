@@ -1,7 +1,7 @@
 #include "Trajectory.h"
 
 Trajectory::Trajectory()
-    : m_read_from_file(false), m_sorted(false)
+    : m_must_read_from_file(true), m_sorted(false)
     {
     }
 Trajectory::~Trajectory()
@@ -10,6 +10,7 @@ Trajectory::~Trajectory()
 
 void Trajectory::addFrame(boost::shared_ptr<Frame> frame)
     {
+    m_must_read_from_file = true;
     m_frames.push_back(frame);
     }
 
@@ -72,7 +73,45 @@ boost::shared_ptr<Compute> Trajectory::getCompute(const std::string& name)
 
 void Trajectory::sortFrames()
     {
-    std::sort(m_frames.begin(), m_frames.end(), time_less_than());
+    std::sort(m_frames.begin(), m_frames.end());
+    }
+
+/*!
+ * By default, a Trajectory is read by reading all of the constituent Frames into memory
+ */    
+void Trajectory::read()
+    {
+    if (m_must_read_from_file) // only load the file if we need to
+        {
+        // load frames into memory
+        for (unsigned int cur_frame=0; cur_frame != m_frames.size(); ++cur_frame)
+            {
+            m_frames[cur_frame]->readFromFile();
+            }
+        m_must_read_from_file = false; // files have been read, so don't need to read again until something changes
+        }
+    }
+
+/*!
+ * Perform simple checks on the Trajectory, and cleanup Frame discrepancies
+ */
+void Trajectory::validate()
+    {
+    double last_frame_time = 0.;
+    for (unsigned int cur_frame=0; cur_frame != m_frames.size(); ++cur_frame)
+        {
+        // check for time ordering
+        if (cur_frame > 0 && m_frames[cur_frame]->getTime() <= last_frame_time)
+            {
+            // error handling, throw an exception and bail
+            }
+            
+        // check for number of particle staying the same if needed
+        
+        // force type mapping to be the same
+        
+        last_frame_time = m_frames[cur_frame]->getTime();
+        }
     }
 
 void Trajectory::analyze()
@@ -82,29 +121,12 @@ void Trajectory::analyze()
     // main execution loop, so we want to catch exceptions as they are thrown and abort
     try
         {
-        // load frames into memory
-        for (unsigned int cur_frame=0; cur_frame != m_frames.size(); ++cur_frame)
-            {
-            m_frames[cur_frame]->readFromFile();
-            }
+        // read into memory from Frames or by overriden read()
+        read();
         
         // sort and validate the frames
         sortFrames();
-        double last_frame_time = 0.;
-        for (unsigned int cur_frame=0; cur_frame != m_frames.size(); ++cur_frame)
-            {
-            // check for time ordering
-            if (cur_frame > 0 && m_frames[cur_frame]->getTime() <= last_frame_time)
-                {
-                // error handling, throw an exception and bail
-                }
-                
-            // check for number of particle staying the same if needed
-            
-            // force type mapping to be the same
-            
-            last_frame_time = m_frames[cur_frame]->getTime();
-            }
+        validate();
         
         // enter the compute loop
         // if computes should be cleaned up, they need to do this after they are done
@@ -124,4 +146,15 @@ void Trajectory::analyze()
         {
         throw e;
         }
+    }
+
+void export_Trajectory()
+    {
+    using namespace boost::python;
+    class_<Trajectory, boost::shared_ptr<Trajectory> >("Trajectory", init<>())
+    .def("analyze",&Trajectory::analyze)
+    .def("addCompute",&Trajectory::addCompute)
+    .def("removeCompute",&Trajectory::removeCompute)
+    .def("getCompute",&Trajectory::getCompute)
+    .def("addFrame",&Trajectory::addFrame);
     }

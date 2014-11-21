@@ -1,5 +1,5 @@
-#ifndef __COMPUTE_H__
-#define __COMPUTE_H__
+#ifndef MDALYZER_COMPUTES_COMPUTE_H_
+#define MDALYZER_COMPUTES_COMPUTE_H_
 
 class Compute
     {
@@ -12,4 +12,4 @@ class Compute
         void cleanup();
     };
 
-#endif //__COMPUTE_H__
+#endif //MDALYZER_COMPUTES_COMPUTE_H_

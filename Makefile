@@ -23,7 +23,7 @@ endef
 
 .PHONY: all checkdirs clean install
 
-all: checkdirs build/$(TARGET).so
+all: checkdirs build/$(TARGET).so install
 build/$(TARGET).so: $(OBJ)
 	$(CC) $(LD_FLAGS) $^ -o $@
 checkdirs: $(BUILD_DIR)

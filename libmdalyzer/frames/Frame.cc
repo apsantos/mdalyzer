@@ -16,7 +16,14 @@ void Frame::readFromFile()
 void export_Frame()
     {
     using namespace boost::python;
-    class_<Frame, boost::shared_ptr<Frame> >("Frame")
+    class_<Frame, boost::shared_ptr<Frame> >("Frame", init<>())
     .def("readFromFile",&Frame::readFromFile)
-    .def("getTime",&Frame::getTime);
+    .def("getTime",&Frame::getTime)
+    .def("hasTime",&Frame::hasTime)
+    .def("hasPositions",&Frame::hasPositions)
+    .def("hasVelocities",&Frame::hasVelocities)
+    .def("hasTypes",&Frame::hasTypes)
+    .def("hasDiameters",&Frame::hasDiameters)
+    .def("hasMasses",&Frame::hasMasses)
+    .def("hasBox",&Frame::hasBox);
     }

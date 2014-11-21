@@ -1,5 +1,5 @@
-#ifndef __FRAME_H__
-#define __FRAME_H__
+#ifndef MDALYZER_FRAMES_FRAME_H_
+#define MDALYZER_FRAMES_FRAME_H_
 
 #include <string>
 #include <vector>
@@ -62,19 +62,19 @@ class Frame
             }
         bool hasVelocities()
             {
-            return m_has_positions;
+            return m_has_velocities;
             }
         bool hasTypes()
             {
-            return m_has_positions;
+            return m_has_types;
             }
         bool hasDiameters()
             {
-            return m_has_positions;
+            return m_has_diameters;
             }
         bool hasMasses()
             {
-            return m_has_positions;
+            return m_has_masses;
             }
         bool hasBox()
             {
@@ -82,10 +82,12 @@ class Frame
             }
         
         /*!
-         * Set methods for frame properties
+         * Set methods for frame properties, waste a copy operations for vectors though
+         * so only call them if you don't mind this extra step
          */
         void setTime(double time)
             {
+            m_has_time = true;
             m_time = time;
             }
         void setPositions(const std::vector< Vector3<double> >& positions)
@@ -118,6 +120,12 @@ class Frame
             m_has_box = true;
             m_box = box;
             }
+        
+        //! Frame comparisons are done using time (only variable that makes sense), which we need for sorting.
+        inline bool operator< (boost::shared_ptr<Frame> f)
+            {
+            return (getTime() < f->getTime());
+            }
     
     protected:
         double m_time;
@@ -139,4 +147,4 @@ class Frame
     };
 
 void export_Frame();    
-#endif //__FRAME_H__
+#endif //MDALYZER_FRAMES_FRAME_H_

@@ -1,7 +1,9 @@
 #include "Trajectory.h"
 
+#include <algorithm>
+
 Trajectory::Trajectory()
-    : m_must_read_from_file(true), m_sorted(false)
+    : m_must_read_from_file(true), m_n_particles(0), m_sorted(false)
     {
     }
 Trajectory::~Trajectory()
@@ -84,9 +86,47 @@ void Trajectory::read()
     if (m_must_read_from_file) // only load the file if we need to
         {
         // load frames into memory
-        for (unsigned int cur_frame=0; cur_frame != m_frames.size(); ++cur_frame)
+        for (unsigned int cur_frame_idx=0; cur_frame_idx != m_frames.size(); ++cur_frame_idx)
             {
-            m_frames[cur_frame]->readFromFile();
+            boost::shared_ptr<Frame> cur_frame = m_frames[cur_frame_idx];
+            
+            // read into memory
+            cur_frame->readFromFile();
+            
+            // on the first frame, we snag some properties for all properties
+            if (cur_frame_idx == 0)
+                {
+                m_has_positions = (cur_frame->hasPositions());
+                m_has_velocities = (cur_frame->hasVelocities());
+                m_has_masses = (cur_frame->hasMasses());
+                m_has_diameters = (cur_frame->hasDiameters());
+                m_has_types = (cur_frame->hasTypes());
+                
+                m_n_particles = cur_frame->getN();
+                    
+                // construct the type map if present
+                if (m_has_types)
+                    {
+                    std::vector<std::string> types = cur_frame->getTypes();
+                    for (unsigned int i=0; i < types.size(); ++i)
+                        {
+                        std::vector<std::string>::iterator type_it = std::find(m_type_map.begin(),m_type_map.end(),types[i]);
+                        if (type_it == m_type_map.end())
+                            {
+                            m_type_map.push_back(types[i]);
+                            }
+                        }
+                    }
+                
+                
+                }
+            else
+                {
+                if ( (m_has_positions && !cur_frame->hasPositions()) || (m_has_velocities && !cur_frame->hasVelocities()))
+                    {
+                    throw std::runtime_error("Not all frames have positions or velocities");
+                    }
+                }
             }
         m_must_read_from_file = false; // files have been read, so don't need to read again until something changes
         }
@@ -114,6 +154,29 @@ void Trajectory::validate()
         }
     }
 
+unsigned int Trajectory::getTypeByName(const std::string& name) const
+    {
+    for (unsigned int cur_type=0; cur_type < m_type_map.size(); ++cur_type)
+        {
+        if (m_type_map[cur_type] == name)
+            {
+            return cur_type;
+            }
+        }
+    // not found, error!
+    throw std::runtime_error("can't find type!");
+    return 0;
+    }
+    
+std::string Trajectory::getNameByType(unsigned int type) const
+    {
+    if (type >= m_type_map.size())
+        {
+        // error, out of range
+        }
+    return m_type_map[type];
+    }
+
 void Trajectory::analyze()
     {
     std::map< std::string, boost::shared_ptr<Compute> >::iterator cur_compute;
@@ -132,18 +195,13 @@ void Trajectory::analyze()
         // if computes should be cleaned up, they need to do this after they are done
         for (cur_compute = m_computes.begin(); cur_compute != m_computes.end(); ++cur_compute)
             {
-            // handle any internal initialization that needs to be done after initial construction
-            cur_compute->second->setup();
-            
             // perform the evaluation
             cur_compute->second->evaluate();
-            
-            // do internal cleanup if needed (NOT destruction)
-            cur_compute->second->cleanup();
             }
         }
     catch (std::exception const & e)
         {
+        std::cout<<e.what()<<std::endl;
         throw e;
         }
     }

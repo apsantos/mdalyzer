@@ -1,19 +1,26 @@
+/*! \file HOOMDXMLFrame.cc
+ *  \author Michael P. Howard
+ *  \brief Reads HOOMD XML files
+ */
 #include "HOOMDXMLFrame.h"
+
+#include <boost/python.hpp>
 #include <sstream>
 
-// static declaration of HOOMD version support
-float HOOMDXMLFrame::s_supported_hoomd_version = 1.0;
-
+/*! \param file Path to xml file to read
+ */
 HOOMDXMLFrame::HOOMDXMLFrame(const std::string& file)
-    : m_file(file), m_num_particles(-1)
-    {
-    }
-HOOMDXMLFrame::~HOOMDXMLFrame()
+    : m_file(file)
     {
     }
 
+/*! Main routine to parse out the necessary information from file (v.1.0 supported)
+ */
 void HOOMDXMLFrame::readFromFile()
     {
+    // static declaration of HOOMD version support
+    static float s_supported_hoomd_version = 1.0;
+    
     pugi::xml_document doc;
     pugi::xml_parse_result load_file = doc.load_file(m_file.c_str());
     if (load_file)
@@ -42,6 +49,7 @@ void HOOMDXMLFrame::readFromFile()
                 else
                     {
                     // all box components need to be specified, badly formed xml
+                    throw std::runtime_error("HOOMDXMLFrame: poorly formed xml, all box lengths must be set");
                     }
                                        
                 
@@ -73,9 +81,9 @@ void HOOMDXMLFrame::readFromFile()
                 {
                 tryParticlesFromNode(node);
                 // reserve space if the number of positions is specified, only if this hasn't been done yet
-                if (m_num_particles > 0)
+                if (m_n_particles > 0)
                     {
-                    m_positions.assign(m_num_particles,Vector3<double>());
+                    m_positions.assign(m_n_particles,Vector3<double>());
                     }
                     
                 // check if images are included, and wrap the positions if so. We can always get periodic images
@@ -89,7 +97,7 @@ void HOOMDXMLFrame::readFromFile()
                     
                 std::istringstream pos_str(config.child_value("position"));
                 Vector3<double> pos_i;
-                int cur_particle(0);
+                unsigned int cur_particle(0);
                 while (pos_str >> pos_i.x >> pos_i.y >> pos_i.z)
                     {
                     // shift image if necessary
@@ -100,25 +108,11 @@ void HOOMDXMLFrame::readFromFile()
                         m_box.shiftImage(image_vec, pos_i);
                         }
                         
-                    if (m_num_particles > 0) // it's faster to assign if we already know the array size
-                        {
-                        m_positions[cur_particle] = pos_i;
-                        }
-                    else
-                        {
-                        m_positions.push_back(pos_i);
-                        }
+                    fasterPushBack(pos_i, cur_particle, m_positions);
                     ++cur_particle;
                     }
                     
-                if (m_num_particles > 0 && m_num_particles != cur_particle)
-                    {
-                    // particle mismatch, error
-                    }
-                if (m_num_particles < 0)
-                    {
-                    m_num_particles = cur_particle;
-                    }
+                updateParticleCount(cur_particle);
                 m_has_positions = true;
                 }
                 
@@ -128,67 +122,157 @@ void HOOMDXMLFrame::readFromFile()
                 {
                 tryParticlesFromNode(node);
                 
-                if (m_num_particles > 0)
+                if (m_n_particles > 0)
                     {
-                    m_velocities.assign(m_num_particles,Vector3<double>());
+                    m_velocities.assign(m_n_particles,Vector3<double>());
                     }
                 
                 std::istringstream vel_str(config.child_value("velocity"));
                 Vector3<double> vel_i;
-                int cur_particle(0);
+                unsigned int cur_particle(0);
                 while (vel_str >> vel_i.x >> vel_i.y >> vel_i.z)
                     {
-                    if (m_num_particles > 0)
-                        {
-                        m_velocities[cur_particle] = vel_i;
-                        }
-                    else
-                        {
-                        m_velocities.push_back(vel_i);
-                        }
+                    fasterPushBack(vel_i, cur_particle, m_velocities);
+                    ++cur_particle;
                     }
                 
-                if (m_num_particles > 0 && m_num_particles != cur_particle)
-                    {
-                    // particle mismatch, error
-                    }
-                if (m_num_particles < 0)
-                    {
-                    m_num_particles = cur_particle;
-                    }
+                updateParticleCount(cur_particle);
                 m_has_velocities = true;
+                }
+                
+            // process masses
+            node = config.child("mass");
+            if (node)
+                {
+                tryParticlesFromNode(node);
+                
+                if (m_n_particles > 0)
+                    {
+                    m_masses.assign(m_n_particles,0.0);
+                    }
+                
+                std::istringstream mass_str(config.child_value("mass"));
+                double mass_i;
+                unsigned int cur_particle(0);
+                while (mass_str >> mass_i)
+                    {
+                    fasterPushBack(mass_i, cur_particle, m_masses);
+                    ++cur_particle;
+                    }
+                
+                updateParticleCount(cur_particle);
+                m_has_masses = true;
+                }
+            
+            // process diameters
+            node = config.child("diameter");
+            if (node)
+                {
+                tryParticlesFromNode(node);
+                
+                if (m_n_particles > 0)
+                    {
+                    m_diameters.assign(m_n_particles,0.0);
+                    }
+                
+                std::istringstream diam_str(config.child_value("diameter"));
+                double diam_i;
+                unsigned int cur_particle(0);
+                while (diam_str >> diam_i)
+                    {
+                    fasterPushBack(diam_i, cur_particle, m_diameters);
+                    ++cur_particle;
+                    }
+                
+                updateParticleCount(cur_particle);
+                m_has_diameters = true;
+                }
+                
+            // process types
+            node = config.child("type");
+            if (node)
+                {
+                tryParticlesFromNode(node);
+                
+                if (m_n_particles > 0)
+                    {
+                    m_types.assign(m_n_particles,"");
+                    }
+                std::istringstream type_str(config.child_value("type"));
+                std::string type_i;
+                unsigned int cur_particle(0);
+                while (type_str >> type_i)
+                    {
+                    fasterPushBack(type_i, cur_particle, m_types);
+                    ++cur_particle;
+                    }
+                
+                updateParticleCount(cur_particle);
+                m_has_types = true;
                 }
             }
         else
             {
             // your version is too old, die
+            throw std::runtime_error("HOOMDXMLFrame version is too old!");
             }
         }
     else
         {
         // failed to find file, raise hell with exceptions
+        throw std::runtime_error("HOOMDXMLFrame file not found");
         }
     }
 
+//! Try to update the particle count using the pugixml node
+/*! \param node Node that may have a num attribute
+ */
 inline void HOOMDXMLFrame::tryParticlesFromNode(pugi::xml_node node)
     {
     if (node.attribute("num"))
         {
-            if (m_num_particles < 0)
-                {
-                m_num_particles = node.attribute("num").as_int();
-                }
-            else if(node.attribute("num").as_int() != m_num_particles)
-                {
-                // warn particle mismatch between sections
-                }
+        updateParticleCount(node.attribute("num").as_uint());
         }
     }
-    
+//! Update/validate the particle count. We don't allow changes.
+/*! \param n_particle Current number of particles to try to update to
+ */ 
+inline void HOOMDXMLFrame::updateParticleCount(unsigned int n_particle)
+    {
+    if (m_n_particles > 0 && m_n_particles != n_particle)
+        {
+        // particle mismatch, error
+        throw std::runtime_error("HOOMDXMLFrame found differing numbers of particle between sections");
+        }
+    if (m_n_particles == 0)
+        {
+        m_n_particles = n_particle;
+        }
+    }
+
+//! Perform a "push back" on a vector, but prefer to write by index first, which was faster in microbenchmarks
+/*! \param val Item to push back
+ *  \param cur_particle Current particle id
+ *  \param vec STL vector for output
+ */
+template<typename T>
+inline void HOOMDXMLFrame::fasterPushBack(const T val, unsigned int cur_particle, std::vector<T>& vec)
+    {
+    if (m_n_particles > 0 && cur_particle < m_n_particles)
+        {
+        vec[cur_particle] = val;
+        }
+    else
+        {
+        vec.push_back(val);
+        }
+    }
+
+//! Python export for HOOMDXMLFrame       
 void export_HOOMDXMLFrame()
     {
     using namespace boost::python;
-    class_<HOOMDXMLFrame, boost::shared_ptr<HOOMDXMLFrame>, bases<Frame> >
+    class_<HOOMDXMLFrame, boost::shared_ptr<HOOMDXMLFrame>, bases<Frame>, boost::noncopyable >
     ("HOOMDXMLFrame", init< const std::string& >());
     }
     

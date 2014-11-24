@@ -1,50 +1,79 @@
+/*! \file Frame.h
+ *  \author Michael P. Howard
+ *  \brief Data structure for holding particle data at a given time in a simulation
+ */
 #ifndef MDALYZER_FRAMES_FRAME_H_
 #define MDALYZER_FRAMES_FRAME_H_
-
+ 
+/*! \ingroup libmdalyzer
+ * @{
+ * \defgroup frames
+ * \brief All implementations of the Frame data structure
+ * @}
+ */
+ 
 #include <string>
 #include <vector>
+#include <map>
 #include <boost/shared_ptr.hpp>
-#include <boost/python.hpp>
+#include <boost/utility.hpp>
 
-#include "VectorMath.h"
 #include "TriclinicBox.h"
+#include "VectorMath.h"
 
-class Frame
+/*! \class Frame
+ *  The Frame is the fundamental data structure for a Trajectory (which is simply an array of Frames).
+ *  Each Frame stores particle position, velocity, type, diameter, and mass as a SoA to improve cache coherency
+ *  when calling Compute classes need only certain parts of the data. The Frame also holds the TriclinicBox defining
+ *  the boundary of the simulations at a given time.
+ *
+ *  Accessor methods are provided for data, to be used by Compute classes to acquire read only handles to data.
+ *  Inheriting classes should access the protected data members directly to avoid a memcopy.
+ *  However, these classes must ensure that the appropriate boolean flags (e.g. m_has_positions) are also set. Each
+ *  inheriting class is suggested, but not required, to set the number of particles in the frame.
+ *
+ *  \ingroup frames
+ */
+class Frame : boost::noncopyable
     {
     public:
         Frame();
-        virtual ~Frame();
+        virtual ~Frame() {};
         
         virtual void readFromFile();
         
         /*!
          * Get methods for frame properties
          */
-        double getTime()
+        double getTime() const
             {
             return m_time;
             }
-        std::vector< Vector3<double > > getPositions()
+            
+        //! Number of particles
+        unsigned int getN();
+        
+        const std::vector< Vector3<double > >& getPositions() const
             {
             return m_positions;
             }
-        std::vector< Vector3<double> > getVelocities()
+        const std::vector< Vector3<double> >& getVelocities() const
             {
             return m_velocities;
             }
-        std::vector<std::string> getTypes()
+        const std::vector<std::string>& getTypes() const
             {
             return m_types;
             }
-        std::vector<double> getDiameters()
+        const std::vector<double>& getDiameters() const
             {
             return m_diameters;
             }
-        std::vector<double> getMasses()
+        const std::vector<double>& getMasses() const
             {
             return m_masses;
             }
-        TriclinicBox getBox()
+        const TriclinicBox& getBox() const
             {
             return m_box;
             }
@@ -52,31 +81,31 @@ class Frame
         /*!
          * Checkers for data
          */
-        bool hasTime()
+        bool hasTime() const
             {
             return m_has_time;
             }
-        bool hasPositions()
+        bool hasPositions() const
             {
             return m_has_positions;
             }
-        bool hasVelocities()
+        bool hasVelocities() const
             {
             return m_has_velocities;
             }
-        bool hasTypes()
+        bool hasTypes() const
             {
             return m_has_types;
             }
-        bool hasDiameters()
+        bool hasDiameters() const
             {
             return m_has_diameters;
             }
-        bool hasMasses()
+        bool hasMasses() const
             {
             return m_has_masses;
             }
-        bool hasBox()
+        bool hasBox() const
             {
             return m_has_box;
             }
@@ -128,15 +157,17 @@ class Frame
             }
     
     protected:
-        double m_time;
-        std::vector< Vector3<double> > m_positions;
-        std::vector< Vector3<double> > m_velocities;
-        std::vector<std::string> m_types;
-        std::vector<double> m_diameters;
-        std::vector<double> m_masses;
+        double m_time;                                  //!< Snapshot time
+        unsigned int m_n_particles;                     //!< Number of particles
+        std::vector< Vector3<double> > m_positions;     //!< Particle positions
+        std::vector< Vector3<double> > m_velocities;    //!< Particle velocities
+        std::vector<std::string> m_types;               //!< Particle types
+        std::vector<double> m_diameters;                //!< Particle diameters
+        std::vector<double> m_masses;                   //!< Particle masses
         
-        TriclinicBox m_box;
+        TriclinicBox m_box;                             //!< Simulation box
 
+        //! Boolean flags for data being set
         bool m_has_time;
         bool m_has_positions;
         bool m_has_velocities;

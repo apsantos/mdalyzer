@@ -1,6 +1,6 @@
 CC := g++
 
-INSTALL_DIR := ~/apc_524/mdalyzer/tmp
+INSTALL_DIR := bin
 TARGET := mdalyzer
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
 LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L/usr/global/boost/1_55_0/lib/ -lboost_python -lpython2.7

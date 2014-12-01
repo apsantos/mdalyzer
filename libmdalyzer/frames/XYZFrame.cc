@@ -6,7 +6,6 @@
 
 #include <boost/python.hpp>
 #include <sstream>
-#include <math.h>
 
 
 /*! \param file Path to xyz file to read
@@ -37,7 +36,7 @@ void XYZFrame::readFromFile()
     file >> line;
 
 	// read atom types and positions
-	int type
+	int type = 0;
 	Vector3<double> coord(0.,0.,0.);
 	
 	for (int i = 0; i< m_n_particles; i++)
@@ -45,7 +44,11 @@ void XYZFrame::readFromFile()
 	    //read type and coordinates
 		file >> type >> coord.x >> coord.y >> coord.z;
 		
-		m_types.push_back(type);
+        // convert type from int to str
+        std::ostringstream convert_type;
+        convert_type << type;
+        
+		m_types.push_back(convert_type.str());
 		m_positions.push_back(coord);
 		
 	}

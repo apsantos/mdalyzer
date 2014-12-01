@@ -66,7 +66,7 @@ void PDBFrame::readFromFile()
     
     // assign box based on the length and tilt
     m_box = TriclinicBox(length,tilt);
-    m_has_box = true;
+    
     
     // read until ATOM header
     file >> line;
@@ -77,18 +77,25 @@ void PDBFrame::readFromFile()
 
     // read until TER header
     char * buffer;
-    buffer = new char[26];
+    buffer = new char[11];
+    std::string atom_type;
+    int dummyread_int;
     m_n_particles = 0;
     Vector3<double> coord(0.,0.,0.);
     
     while (line.compare("TER") != 0) {
         
-        // ignore the first 26 characters
-        file.read(buffer,26);
+        // ignore the first 11 characters
+        file.read(buffer,11);
+        
+        // read the type
+        file >> atom_type >> line >> line >> dummyread_int;
         
         // read coordinates
         file >> coord.x >> coord.y >> coord.z;
         
+        // insert type and coordinates
+        m_types.push_back(atom_type);
         m_positions.push_back(coord);
         
         getline(file, line);
@@ -98,11 +105,14 @@ void PDBFrame::readFromFile()
         ++m_n_particles;
     }
   
-  // PDB file contains none of the following
-  m_has_velocities = false;
-  m_has_masses = false;
-  m_has_diameters = false;
-  m_has_types = false;
+    // PDB file contains
+    m_has_box = true;
+    m_has_types = true;
+  
+    // PDB file contains none of the following
+    m_has_velocities = false;
+    m_has_masses = false;
+    m_has_diameters = false;
 }
 
 

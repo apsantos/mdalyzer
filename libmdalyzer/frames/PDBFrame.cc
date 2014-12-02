@@ -35,6 +35,14 @@ void PDBFrame::readFromFile()
     while (line.compare("CRYST1") != 0) {
         getline(file, line);
         file >> line;
+        
+        // throw error if the file does not have CRYST1 line
+        // which contains the box dimension info
+        if ( file.eof() ) {
+            std::cerr << "ERROR: PDB file should contain line staring with \"CRYST1\""
+                      << " which contains info of box dimensions" << endl;
+            exit(0);
+        }
     }
 
     // read lattice constants

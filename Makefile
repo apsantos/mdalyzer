@@ -1,17 +1,26 @@
+#####
+# user configurable options
+#####
 CC := g++
-
 INSTALL_DIR := bin
-TARGET := mdalyzer
+PYTHON_VERSION := 2.7
+BOOST_LIB := /usr/global/boost/1_55_0/lib/
+#####
+# end configuration
+#####
+
+
+TARGET := libmdalyzer
+PYTHON_INCLUDE := -I/usr/include/python$(PYTHON_VERSION)
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
-LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L/usr/global/boost/1_55_0/lib/ -lboost_python -lpython2.7
-PYTHON_INCLUDE := -I/usr/include/python2.7
+LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
 
 MODULES := computes extern frames python trajectory utils
-SRC_DIR := $(addprefix lib$(TARGET)/,$(MODULES))
+SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
 
 SRC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
-OBJ := $(patsubst lib$(TARGET)/%.cc,build/%.o,$(SRC))
+OBJ := $(patsubst $(TARGET)/%.cc,build/%.o,$(SRC))
 INCLUDES := $(addprefix -I,$(SRC_DIR)) $(PYTHON_INCLUDE)
 
 vpath %.cc $(SRC_DIR)

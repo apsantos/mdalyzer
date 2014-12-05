@@ -5,6 +5,8 @@
 #include "PDBFrame.h"
 
 #include <boost/python.hpp>
+#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <math.h>
 
@@ -23,9 +25,9 @@ void PDBFrame::readFromFile()
     {
     
     // open PDB file
-    std::ifstream file(fileName.c_str());
+    std::ifstream file(m_file.c_str());
     if (!file.good()) {
-        std::cerr << "ERROR: cannot find PDB file " << fileName << endl;
+        std::cerr << "ERROR: cannot find PDB file " << m_file << std::endl;
         exit(0);
     }
 
@@ -40,7 +42,7 @@ void PDBFrame::readFromFile()
         // which contains the box dimension info
         if ( file.eof() ) {
             std::cerr << "ERROR: PDB file should contain line staring with \"CRYST1\""
-                      << " which contains info of box dimensions" << endl;
+                      << " which contains info of box dimensions" << std::endl;
             exit(0);
         }
     }
@@ -68,7 +70,7 @@ void PDBFrame::readFromFile()
         tilt.x = t_b * cos(angle_gamma * PI / 180.0);
         tilt.y = t_c * cos(angle_beta * PI / 180.0);
         length.y = pow( (t_b*t_b - tilt.x*tilt.x), 0.5);
-        tilt.z = ( ( length.y * length.z * cos(angel_alpha * PI / 180.0) ) - \
+        tilt.z = ( ( length.y * length.z * cos(angle_alpha * PI / 180.0) ) - \
                     ( tilt.x * tilt.y ) ) / length.y;
         length.z = pow( (t_c*t_c - tilt.y*tilt.y - tilt.z*tilt.z), 0.5);
     

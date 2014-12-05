@@ -5,6 +5,8 @@
 #include "XYZFrame.h"
 
 #include <boost/python.hpp>
+#include <iostream>
+#include <fstream>
 #include <sstream>
 
 
@@ -21,10 +23,10 @@ void XYZFrame::readFromFile()
     {
     
     // open XYZ file
-    std::ifstream file(fileName.c_str());
+    std::ifstream file(m_file.c_str());
     if (!file.good()) 
 	{
-        std::cerr << "ERROR: cannot find XYZ file " << fileName << endl;
+        std::cerr << "ERROR: cannot find XYZ file " << m_file << std::endl;
         exit(0);
     }
 
@@ -39,7 +41,7 @@ void XYZFrame::readFromFile()
 	int type = 0;
 	Vector3<double> coord(0.,0.,0.);
 	
-	for (int i = 0; i< m_n_particles; i++)
+	for (unsigned int i = 0; i< m_n_particles; i++)
 	{
 	    //read type and coordinates
 		file >> type >> coord.x >> coord.y >> coord.z;
@@ -67,7 +69,7 @@ void XYZFrame::readFromFile()
 void export_XYZFrame()
     {
     using namespace boost::python;
-    class_<XYZFrame, boost::shared_ptr<PDBFrame>, bases<Frame>, boost::noncopyable >
+    class_<XYZFrame, boost::shared_ptr<XYZFrame>, bases<Frame>, boost::noncopyable >
     ("XYZFrame", init< const std::string& >());
     }
     

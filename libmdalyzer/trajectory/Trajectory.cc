@@ -1,7 +1,6 @@
 #include "Trajectory.h"
 
 #include <algorithm>
-#include <iostream>
 
 Trajectory::Trajectory()
     : m_must_read_from_file(true), m_n_particles(0), m_sorted(false)

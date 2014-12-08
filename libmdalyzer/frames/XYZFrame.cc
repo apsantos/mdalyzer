@@ -25,10 +25,9 @@ void XYZFrame::readFromFile()
     // open XYZ file
     std::ifstream file(m_file.c_str());
     if (!file.good()) 
-	{
-        std::cerr << "ERROR: cannot find XYZ file " << m_file << std::endl;
-        exit(0);
-    }
+        {
+        throw std::runtime_error("ERROR: cannot find XYZ file " +  m_file);
+        }
 
     // read number of atoms
     file >> m_n_particles;
@@ -42,7 +41,7 @@ void XYZFrame::readFromFile()
 	Vector3<double> coord(0.,0.,0.);
 	
 	for (unsigned int i = 0; i< m_n_particles; i++)
-	{
+        {
 	    //read type and coordinates
 		file >> type >> coord.x >> coord.y >> coord.z;
 		
@@ -52,8 +51,7 @@ void XYZFrame::readFromFile()
         
 		m_types.push_back(convert_type.str());
 		m_positions.push_back(coord);
-		
-	}
+        }
 	
 	m_has_types = true;
 	

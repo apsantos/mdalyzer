@@ -12,7 +12,7 @@
 
 #include "VectorMath.h"
 
-BOOST_PYTHON_MODULE(mdalyzer)
+BOOST_PYTHON_MODULE(libmdalyzer)
     {
     using namespace boost::python;
     

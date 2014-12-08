@@ -22,17 +22,17 @@ From a Python script or prompt in the same directory as libmdalyzer.so library, 
 interfacing with the C++ backend is below:
 
 	# load the module
-	import libmdalyzer
+	import libmdalyzer as md
 
 	# setup the Trajectory and attach Frames
-	t = mdalyzer.Trajectory()
-	f1 = mdalyzer.HOOMDXMLFrame("frame1.xml")
-	f2 = mdalyzer.HOOMDXMLFrame("frame2.xml")
+	t = md.Trajectory()
+	f1 = md.HOOMDXMLFrame("frame1.xml")
+	f2 = md.HOOMDXMLFrame("frame2.xml")
 	t.addFrame(f1)
 	t.addFrame(f2)
 
 	# setup the Compute
-	dens = mdalyzer.DensityProfile(t,"density",mdalyzer.Vector3uint(11,0,0))
+	dens = md.DensityProfile(t,"density",md.Vector3uint(11,0,0))
 	dens.useMassWeighting(True)
 	dens.addType('B')
 	dens.addType('A')

@@ -4,14 +4,16 @@
 CC := g++
 INSTALL_DIR := bin
 PYTHON_VERSION := 2.7
-BOOST_LIB := /usr/global/boost/1_55_0/lib/
+PYTHON_PATH :=/usr/global/python/2.7.8/
+BOOST_PATH := /usr/global/boost/1_55_0/
 #####
 # end configuration
 #####
 
 
 TARGET := libmdalyzer
-PYTHON_INCLUDE := -I/usr/include/python$(PYTHON_VERSION)
+PYTHON_INCLUDE := -I$(PYTHON_PATH)include/python$(PYTHON_VERSION)
+BOOST_LIB := $(BOOST_PATH)lib/
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
 LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
 

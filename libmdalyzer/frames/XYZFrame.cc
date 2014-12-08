@@ -5,7 +5,6 @@
 #include "XYZFrame.h"
 
 #include <boost/python.hpp>
-#include <iostream>
 #include <fstream>
 #include <sstream>
 

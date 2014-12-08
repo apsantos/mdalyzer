@@ -5,7 +5,6 @@
 #include "PDBFrame.h"
 
 #include <boost/python.hpp>
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <math.h>

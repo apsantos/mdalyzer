@@ -9,6 +9,7 @@
 
 #include "Compute.h"
 #include "DensityProfile.h"
+#include "MeanSquaredDisplacement.h"
 
 #include "VectorMath.h"
 
@@ -26,6 +27,7 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     .def_readwrite("x",&Vector3<double>::x)
     .def_readwrite("y",&Vector3<double>::y)
     .def_readwrite("z",&Vector3<double>::z);
+
     
     // trajectories
     export_Trajectory();
@@ -37,4 +39,5 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     // computes
     export_Compute();
     export_DensityProfile();
+    export_MeanSquaredDisplacement();
     }

@@ -18,7 +18,7 @@
 class MeanSquaredDisplacement : public Compute
     {
     public:
-        MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const unsigned int&  origins);
+        MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const unsigned int& origins);
         virtual ~MeanSquaredDisplacement() {};
         
         virtual void evaluate();

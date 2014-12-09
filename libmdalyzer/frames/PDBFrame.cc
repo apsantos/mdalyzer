@@ -35,6 +35,9 @@ void PDBFrame::readFromFile()
     // - all atoms in the first frame is already read. if this is set to
     // - true, any other coordinate information will not be read.
     bool first_frame_read = false;
+    
+    
+    m_n_particles = 0;         // number of atoms
 
     // read through lines, checking for the first word
     while ( file.eof() )
@@ -88,12 +91,12 @@ void PDBFrame::readFromFile()
                 // read only if this is the first frame
                 if ( first_frame_read ) continue;
                 
-                // read until TER header
+                
                 char * buffer;
                 buffer = new char[11];
                 std::string atom_type;
                 int dummyread_int;
-                m_n_particles = 0;
+                
                 Vector3<double> coord(0.,0.,0.);
                 
                 // ignore the first 11 characters
@@ -135,6 +138,7 @@ void PDBFrame::readFromFile()
     m_has_masses = false;
     m_has_diameters = false;
     
+    }
 
 
 //! Python export for PDBFrame

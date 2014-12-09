@@ -36,7 +36,7 @@ void GROFrame::readFromFile()
     file >> m_n_particles;
 
 	// read atom types and positions and velocitieis (if present)
-	int type = 0;
+    std::string atom_type;
 	Vector3<double> coord(0.,0.,0.);
     Vector3<double> veloc(0.,0.,0.);
 	
@@ -47,7 +47,6 @@ void GROFrame::readFromFile()
         getline(file, line);
         std::istringstream iss_line(line);
         
-        std::string atom_type;
         int dummyread_int;
         
         //read type and coordinates
@@ -61,13 +60,13 @@ void GROFrame::readFromFile()
             m_velocities.push_back(veloc);
             }
         
-		m_types.push_back(atom_type.str());
+		m_types.push_back(atom_type);
 		m_positions.push_back(coord);
         }
         
     // read the box dimensions and the tilt factors (if present)
     // (UNIT: nanometers)
-    getline(file, line)
+    getline(file, line);
     std::istringstream iss_line(line);
     double dummyread_double;
     

@@ -126,6 +126,9 @@ void PDBFrame::readFromFile()
                 // this marks the end of each frame
                 first_frame_read = true;
             }
+            
+        // move to next line
+        getline(file, line);
         
         }
         

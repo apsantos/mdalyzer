@@ -149,13 +149,7 @@ class Frame : boost::noncopyable
             m_has_box = true;
             m_box = box;
             }
-        
-        //! Frame comparisons are done using time (only variable that makes sense), which we need for sorting.
-        inline bool operator< (boost::shared_ptr<Frame> f)
-            {
-            return (getTime() < f->getTime());
-            }
-    
+            
     protected:
         double m_time;                                  //!< Snapshot time
         unsigned int m_n_particles;                     //!< Number of particles

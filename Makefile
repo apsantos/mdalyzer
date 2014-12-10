@@ -48,6 +48,7 @@ clean:
 install:
 	@mkdir -p $(INSTALL_DIR)
 	@cp build/$(TARGET).so $(INSTALL_DIR)/
+	@cp -r mdalyzer $(INSTALL_DIR)/
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
 

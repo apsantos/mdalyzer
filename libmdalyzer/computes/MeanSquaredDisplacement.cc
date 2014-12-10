@@ -64,33 +64,34 @@ void MeanSquaredDisplacement::evaluate()
         type = m_traj->getTypes();
         }
 
-    std::vector<unsigned int> ntime(frames.size(), 0);
-    std::vector<unsigned int> time0 ; // vector of time origin frame
-    unsigned int t0 = 0;   // time origin counter
+    std::vector<unsigned int> ntime(frames.size(), 0); 
+    std::vector<unsigned int> time0; // vector of time origin frame
     for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
         {
-        if ( ( frame_idx == 0 ) || ( frame_idx % m_origins == 0 ) )
+        boost::shared_ptr<Frame> cur_frame = frames[frame_idx];
+        if (!cur_frame->hasPositions())
             {
-            ++t0 ;
-            time0.push_back(t0);
+            throw std::runtime_error(
+                  "MeanSquaredDisplacement needs positions for all frames");
+            }
+        std::vector< Vector3<double> > pos = cur_frame->getPositions();
+
+        // save time origins
+        if ( frame_idx % m_origins == 0 )
+            {
+            time0.push_back(frame_idx);
             }
 
-        for ( unsigned int tau = 0; tau < t0; ++tau)        
+        for ( unsigned int tau = 0; tau < (time0.size()); ++tau)        
             {
             // set timestep to match the time origin
-            unsigned int delta_t = frame_idx - time0[tau] + 1 ;
+            unsigned int delta_t = frame_idx - time0[tau];
             if ( delta_t < frames.size() )
                 {
-                ntime[delta_t] += 1 ;
+                // count occurances each corrected timestep is passed
+                ++ntime[delta_t] ;
 
-                boost::shared_ptr<Frame> cur_frame = frames[delta_t];
-                if (!cur_frame->hasPositions())
-                    {
-                    throw std::runtime_error(
-                          "MeanSquaredDisplacement needs positions for all frames");
-                    }
-                std::vector< Vector3<double> > pos = cur_frame->getPositions();
-                boost::shared_ptr<Frame> origin_frame = frames[tau];
+                boost::shared_ptr<Frame> origin_frame = frames[time0[tau]];
                 std::vector< Vector3<double> > origin_pos = origin_frame->getPositions();
 
                 for (unsigned int iatom = 0; iatom < m_traj->getN(); ++iatom)
@@ -109,17 +110,14 @@ void MeanSquaredDisplacement::evaluate()
             }
         }
 
-    // map the string types to indices so we know which to grab
     std::vector<unsigned int> type_map(m_type_names.size());
-    for (unsigned int cur_type = 0; cur_type < m_type_names.size(); ++cur_type)
-        {
-        type_map[cur_type] = m_traj->getTypeByName(m_type_names[cur_type]);
-        }
-
-    // count the number of particles in each type
     std::vector<unsigned int> num_particle_type( type_size, 0 );
     for (unsigned int cur_type = 0; cur_type < m_type_names.size(); ++cur_type)
         {
+        // map the string types to indices so we know which to grab
+        type_map[cur_type] = m_traj->getTypeByName(m_type_names[cur_type]);
+
+        // count the number of particles in each type
         num_particle_type[cur_type] = std::count ( type.begin(), type.end(), m_type_names[cur_type] );
         }
 
@@ -137,6 +135,8 @@ void MeanSquaredDisplacement::evaluate()
             double t = cur_frame->getTime(); 
             double msd_norm = ( ntime[frame_idx] * num_particle_type[cur_type]);
             outf<<t;
+            outf<<"\t"<<time0[1];
+            outf<<"\t"<<msd_norm;
             double msd_tot = ( msd.x[type_map[cur_type]][frame_idx] + 
                                msd.y[type_map[cur_type]][frame_idx] + 
                                msd.z[type_map[cur_type]][frame_idx] ) ;

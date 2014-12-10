@@ -74,9 +74,16 @@ boost::shared_ptr<Compute> Trajectory::getCompute(const std::string& name)
         }
     }
 
+struct frameCompare
+    {
+        inline bool operator()(boost::shared_ptr<Frame> f1, boost::shared_ptr<Frame> f2)
+            {
+            return (f1->getTime() < f2->getTime());
+            }
+    };
 void Trajectory::sortFrames()
     {
-    std::sort(m_frames.begin(), m_frames.end());
+    std::sort(m_frames.begin(), m_frames.end(), frameCompare());
     }
 
 /*!

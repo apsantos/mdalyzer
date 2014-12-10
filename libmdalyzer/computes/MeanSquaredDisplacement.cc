@@ -54,7 +54,15 @@ void MeanSquaredDisplacement::evaluate()
     msd.y.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
     msd.z.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
 
-    std::vector<std::string> types = frames[0]->getTypes();
+    std::vector<std::string> type;
+    if (frames[0]->hasTypes())
+        {
+        type = frames[0]->getTypes();
+        }
+    else if (m_traj->hasTypes())
+        {
+        type = m_traj->getTypes();
+        }
 
     std::vector<unsigned int> ntime(frames.size(), 0);
     std::vector<unsigned int> time0 ; // vector of time origin frame
@@ -74,26 +82,46 @@ void MeanSquaredDisplacement::evaluate()
             if ( delta_t < frames.size() )
                 {
                 ntime[delta_t] += 1 ;
+
                 boost::shared_ptr<Frame> cur_frame = frames[delta_t];
+                if (!cur_frame->hasPositions())
+                    {
+                    throw std::runtime_error(
+                          "MeanSquaredDisplacement needs positions for all frames");
+                    }
                 std::vector< Vector3<double> > pos = cur_frame->getPositions();
                 boost::shared_ptr<Frame> origin_frame = frames[tau];
                 std::vector< Vector3<double> > origin_pos = origin_frame->getPositions();
+
                 for (unsigned int iatom = 0; iatom < m_traj->getN(); ++iatom)
                     {
-                    int n_type = m_traj->getTypeByName(types[iatom]);
+                    // check if this atom is one of our types
+                    unsigned int type_idx_iatom = (m_type_names.size() > 0 && m_traj->hasTypes()) ? m_traj->getTypeByName(type[iatom]) : 0;
                     Vector3<double> cur_pos = pos[iatom];
                     Vector3<double> cur_origin_pos = origin_pos[iatom];
                     Vector3<double> diff_pos = cur_pos - cur_origin_pos;
 
-                    msd.x[n_type][delta_t] += ( diff_pos.x * diff_pos.x ) ;
-                    msd.y[n_type][delta_t] += ( diff_pos.y * diff_pos.y ) ;
-                    msd.z[n_type][delta_t] += ( diff_pos.z * diff_pos.z ) ;
+                    msd.x[type_idx_iatom][delta_t] += ( diff_pos.x * diff_pos.x );
+                    msd.y[type_idx_iatom][delta_t] += ( diff_pos.y * diff_pos.y );
+                    msd.z[type_idx_iatom][delta_t] += ( diff_pos.z * diff_pos.z );
                     } 
                 } 
             }
         }
 
+    // map the string types to indices so we know which to grab
+    std::vector<unsigned int> type_map(m_type_names.size());
+    for (unsigned int cur_type = 0; cur_type < m_type_names.size(); ++cur_type)
+        {
+        type_map[cur_type] = m_traj->getTypeByName(m_type_names[cur_type]);
+        }
 
+    // count the number of particles in each type
+    std::vector<unsigned int> num_particle_type( type_size, 0 );
+    for (unsigned int cur_type = 0; cur_type < m_type_names.size(); ++cur_type)
+        {
+        num_particle_type[cur_type] = std::count ( type.begin(), type.end(), m_type_names[cur_type] );
+        }
 
     // output
     for (unsigned int cur_type = 0; cur_type < m_type_names.size(); ++cur_type)
@@ -101,19 +129,21 @@ void MeanSquaredDisplacement::evaluate()
         std::string outf_name = m_file_name + "_" + m_type_names[cur_type] + ".dat";
         std::ofstream outf(outf_name.c_str());
         outf.precision(4);
-        outf<<"time msd-total  -x  -y  -z";
+        outf<<"time msd-total   -x    -y   -z";
         outf<<std::endl;
         for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
             {
             boost::shared_ptr<Frame> cur_frame = frames[frame_idx];
             double t = cur_frame->getTime(); 
-            double norm = ( ntime[frame_idx] ) ;
+            double msd_norm = ( ntime[frame_idx] * num_particle_type[cur_type]);
             outf<<t;
-            double msd_tot = ( msd.x[cur_type][frame_idx] + msd.y[cur_type][frame_idx] + msd.z[cur_type][frame_idx] ) ;
-            outf<<"\t"<<msd_tot/norm;
-            outf<<"\t"<<msd.x[cur_type][frame_idx]/norm;
-            outf<<"\t"<<msd.y[cur_type][frame_idx]/norm;
-            outf<<"\t"<<msd.z[cur_type][frame_idx]/norm;
+            double msd_tot = ( msd.x[type_map[cur_type]][frame_idx] + 
+                               msd.y[type_map[cur_type]][frame_idx] + 
+                               msd.z[type_map[cur_type]][frame_idx] ) ;
+            outf<<"\t"<<msd_tot/msd_norm;
+            outf<<"\t"<<msd.x[type_map[cur_type]][frame_idx]/msd_norm;
+            outf<<"\t"<<msd.y[type_map[cur_type]][frame_idx]/msd_norm;
+            outf<<"\t"<<msd.z[type_map[cur_type]][frame_idx]/msd_norm;
             outf<<std::endl;
             }
         outf.close();

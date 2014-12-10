@@ -22,6 +22,7 @@ class MeanSquaredDisplacement : public Compute
         virtual ~MeanSquaredDisplacement() {};
         
         virtual void evaluate();
+        virtual void write( const Vector3< std::vector< std::vector<float> > >& msd, const std::vector<unsigned int>& ntime);
         
         void addType(const std::string& name);
         void deleteType(const std::string& name);

@@ -48,8 +48,9 @@ void MeanSquaredDisplacement::evaluate()
         }
     // set up the msd
     Vector3< std::vector< std::vector<float> > > msd;
+    // if no types are specified, use all particles
+    unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); 
     // zero the msd values and time counter
-    unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); // if no types are specified, use all particles
     msd.x.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
     msd.y.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
     msd.z.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
@@ -109,6 +110,26 @@ void MeanSquaredDisplacement::evaluate()
                 } 
             }
         }
+    write(msd, ntime);
+    }
+
+void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<float> > >& msd, const std::vector<unsigned int>& ntime)
+    {
+    // read the frames and make sure there is time data
+    std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
+
+    // if no types are specified, use all particles
+    unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); 
+
+    std::vector<std::string> type;
+    if (frames[0]->hasTypes())
+        {
+        type = frames[0]->getTypes();
+        }
+    else if (m_traj->hasTypes())
+        {
+        type = m_traj->getTypes();
+        }
 
     std::vector<unsigned int> type_map(m_type_names.size());
     std::vector<unsigned int> num_particle_type( type_size, 0 );
@@ -132,14 +153,12 @@ void MeanSquaredDisplacement::evaluate()
         for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
             {
             boost::shared_ptr<Frame> cur_frame = frames[frame_idx];
-            double t = cur_frame->getTime(); 
+            double time = cur_frame->getTime(); 
             double msd_norm = ( ntime[frame_idx] * num_particle_type[cur_type]);
-            outf<<t;
-            outf<<"\t"<<time0[1];
-            outf<<"\t"<<msd_norm;
             double msd_tot = ( msd.x[type_map[cur_type]][frame_idx] + 
                                msd.y[type_map[cur_type]][frame_idx] + 
                                msd.z[type_map[cur_type]][frame_idx] ) ;
+            outf<<time;
             outf<<"\t"<<msd_tot/msd_norm;
             outf<<"\t"<<msd.x[type_map[cur_type]][frame_idx]/msd_norm;
             outf<<"\t"<<msd.y[type_map[cur_type]][frame_idx]/msd_norm;

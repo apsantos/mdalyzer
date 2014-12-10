@@ -14,6 +14,11 @@ struct Vector3
 	    return Vector3<T>(x+a.x,y+a.y,z+a.z);
         }
 	
+    inline Vector3<T> operator- (const Vector3<T>& a) const
+        {
+	    return Vector3<T>(x-a.x,y-a.y,z-a.z);
+        }
+	
 	inline Vector3<T>& operator+= (const Vector3<T>& a)
         {
 	    x += a.x;

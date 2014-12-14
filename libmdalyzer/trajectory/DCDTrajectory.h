@@ -7,6 +7,7 @@
 #include "Trajectory.h"
 #include "ReadDCD.h"
 #include <fstream>
+#include <cstdio>
 
 /*! \class DCDTrajectory
  *  \brief DCD parser
@@ -24,6 +25,7 @@ class DCDTrajectory : public Trajectory
         DCDTrajectory(const std::string& fileName, const unsigned int& frequency);
         virtual ~DCDTrajectory() {};
         virtual void read();
+        virtual int readHeader(FILE* fileptr);
         //virtual void readHeader(const std::ifstream& file, bool pdb_info);
         //virtual void readPDBinfo(const std::ifstream file);
 

@@ -6,6 +6,7 @@
 
 #include "Frame.h"
 #include "HOOMDXMLFrame.h"
+#include "DCDTrajectory.h"
 
 #include "Compute.h"
 #include "DensityProfile.h"
@@ -31,6 +32,7 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     
     // trajectories
     export_Trajectory();
+    export_DCDTrajectory();
     
     // frames
     export_Frame();

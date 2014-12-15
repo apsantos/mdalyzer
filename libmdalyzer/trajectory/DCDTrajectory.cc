@@ -42,19 +42,19 @@ void DCDTrajectory::readHeader(FILE* fileptr)
         {
         if (errcode == DCD_BADFORMAT)
             {
-            throw std::runtime_error( "ERROR: (LoadDCD) Improper format for DCD file" + m_file);
+            throw std::runtime_error( "ERROR: (DCDTrajectory) Improper format for DCD file" + m_file);
             }
         else if (errcode == DCD_BADMALLOC)
             {
-            throw std::runtime_error( "ERROR: (LoadDCD) DCD file not open" + m_file);
+            throw std::runtime_error( "ERROR: (DCDTrajectory) DCD file not open" + m_file);
             }
         else if (m_n_dcdparticles <= 0) 
             {
-            throw std::runtime_error(  "ERROR: (LoadDCD) No atoms found in DCD file" + m_file);
+            throw std::runtime_error(  "ERROR: (DCDTrajectory) No atoms found in DCD file" + m_file);
             }
         else
             {
-  	        throw std::runtime_error( "ERROR: (LoadDCD) Early end to DCD file" + m_file);
+  	        throw std::runtime_error( "ERROR: (DCDTrajectory) Early end to DCD file" + m_file);
             }
         } 
     }
@@ -67,8 +67,8 @@ void DCDTrajectory::readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& 
     float *Y = new float[m_n_dcdparticles];
     float *Z = new float[m_n_dcdparticles];
 
-    errcode = read_dcdstep(fileptr, m_n_frames_c, X, Y, Z, m_n_fixed_c,
-    	 m_first_dcdread, m_freeparticles_c, m_reverse_endian_c, m_charmm_flags_c);
+    errcode = read_dcdstep(fileptr, m_n_dcdparticles_c, X, Y, Z, m_n_fixed_c,
+    	 (m_first_dcdread == 0), m_freeparticles_c, m_reverse_endian_c, m_charmm_flags_c);
 
     if (m_first_dcdread == 0)
         {
@@ -79,7 +79,7 @@ void DCDTrajectory::readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& 
         {
         if (errcode == (-1)) 
             {
-            throw std::runtime_error( "MDENERGY> End of DCD file reached." + m_file);
+            throw std::runtime_error( "End of DCD file reached." + m_file);
             }
         else if (errcode == DCD_BADFORMAT)
             {
@@ -130,9 +130,8 @@ void DCDTrajectory::read()
     // read the DCD timestep
     for (unsigned int frame_idx = 0; frame_idx < m_n_frames; ++frame_idx)
         {
-        for (unsigned int ipart = 0; ipart < m_n_dcdparticles; ++ipart)
-            {
-            }
+        std::vector< Vector3<double> > pos;
+        readTimeStep(fileptr, pos);
         }
     // convert 
 

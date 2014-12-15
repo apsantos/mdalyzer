@@ -25,11 +25,26 @@ class DCDTrajectory : public Trajectory
         DCDTrajectory(const std::string& fileName, const unsigned int& frequency);
         virtual ~DCDTrajectory() {};
         virtual void read();
-        virtual int readHeader(FILE* fileptr);
+        virtual void readHeader(FILE* fileptr);
+        virtual void readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& positions);
         //virtual void readHeader(const std::ifstream& file, bool pdb_info);
         //virtual void readPDBinfo(const std::ifstream file);
 
     private:
+        // variables used to call C ReadDCD.cc functions
+        int m_n_dcdparticles_c;
+        int m_n_frames_c;
+        int m_frame_start_c;
+        int m_frame_skip_c;
+        int *m_freeparticles_c;
+        int m_reverse_endian_c;
+        int m_n_fixed_c;
+        int m_charmm_flags_c;
+        int m_first_dcdread;
+        
+        double m_time_step;
+        unsigned int m_n_dcdparticles;
+        unsigned int m_n_frames;
         const std::string m_file;
         const unsigned int m_frequency;  // DCD timestep output frequency
         

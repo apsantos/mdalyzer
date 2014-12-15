@@ -17,7 +17,7 @@ BOOST_LIB := $(BOOST_PATH)lib/
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
 LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
 
-MODULES := computes extern frames python trajectory utils
+MODULES := analyzers extern data_structures python trajectories utils
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
 BUILD_DIR := $(addprefix build/,$(MODULES))
 

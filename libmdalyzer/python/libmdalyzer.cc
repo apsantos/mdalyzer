@@ -3,13 +3,13 @@
 #include <boost/python.hpp>
 
 #include "Trajectory.h"
+#include "HOOMDXMLTrajectory.h"
 
 #include "Frame.h"
-#include "HOOMDXMLFrame.h"
 
-#include "Compute.h"
-#include "DensityProfile.h"
-#include "MeanSquaredDisplacement.h"
+#include "Analyzer.h"
+// #include "DensityProfile.h"
+// #include "MeanSquaredDisplacement.h"
 
 #include "VectorMath.h"
 
@@ -31,13 +31,14 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     
     // trajectories
     export_Trajectory();
+    export_HOOMDXMLTrajectory();
     
     // frames
     export_Frame();
-    export_HOOMDXMLFrame();
+//     export_HOOMDXMLFrame();
     
     // computes
-    export_Compute();
-    export_DensityProfile();
-    export_MeanSquaredDisplacement();
+//     export_Compute();
+//     export_DensityProfile();
+//     export_MeanSquaredDisplacement();
     }

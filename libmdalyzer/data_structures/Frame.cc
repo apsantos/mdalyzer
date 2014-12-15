@@ -7,7 +7,7 @@
 
 Frame::Frame(unsigned int n)
     : m_n_particles(n), m_has_time(false), m_has_box(false), m_has_positions(false),
-    m_has_velocities(false), m_has_types(false), m_has_diameters(false), m_has_masses(false)
+    m_has_velocities(false), m_has_names(false), m_has_types(false), m_has_diameters(false), m_has_masses(false)
     {
     
     m_positions.assign(n, Vector3<double>());

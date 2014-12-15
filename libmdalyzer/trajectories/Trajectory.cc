@@ -7,7 +7,8 @@
 #include <boost/python.hpp>
 
 Trajectory::Trajectory()
-    : m_must_read_from_file(true), m_n_particles(0), m_sorted(false)
+    : m_must_read_from_file(true), m_loc_box(NONE), m_loc_names(NONE),
+    m_loc_types(NONE), m_loc_diameters(NONE), m_loc_masses(NONE), m_n_particles(0), m_sorted(false)
     {
     }
 
@@ -158,36 +159,30 @@ void Trajectory::validate()
         }
     }
     
-// const std::vector<unsigned int>& Trajectory::getTypes(unsigned int frame_id) const
-//     {
-//     if (frame_id != 0xffffff && frame_id < m_frames.size() && m_frames[frame_id]->hasTypes())
-//         {
-//         return m_frames[frame_id]->getTypes();
-//         }
-//     else if (m_loc_types == FRAME)
-//         {
-//         return m_frames[0]->getTypes();
-//         }
-//     else if (m_loc_types == OWN)
-//         {
-//         return m_types;
-//         }
-//     }
-    
 void Trajectory::parse()
     {
+    m_n_particles = m_frames[0]->getN();
+    
     if (m_loc_box == NONE && m_frames[0]->hasBox())
         {
         m_loc_box = FRAME;
+        m_box = m_frames[0]->getBox();
         }
     if (m_loc_diameters == NONE && m_frames[0]->hasDiameters())
+        {
         m_loc_diameters = FRAME;
+        m_diameters = m_frames[0]->getDiameters();
+        }
     if (m_loc_masses == NONE && m_frames[0]->hasMasses())
+        {
         m_loc_masses = FRAME;
+        m_masses = m_frames[0]->getMasses();
+        }
     if (m_loc_names == NONE && m_frames[0]->hasNames())
         {
         m_loc_names = FRAME;
         m_loc_types = FRAME;
+        m_names = m_frames[0]->getNames();
         }
     
     // parse frame by frame for types         
@@ -207,9 +202,10 @@ void Trajectory::parse()
         }
     
     // parse the types for the trajectory level if needed
-    if (m_loc_names == OWN)
+    if (m_loc_names != NONE)
         {
-        m_loc_types = OWN;
+        m_loc_types = m_loc_names;
+        m_types.resize(m_names.size());
         for (unsigned int p_idx = 0; p_idx < m_names.size(); ++p_idx)
             {
             std::map<std::string, unsigned int>::iterator type_pair = m_type_map.find(m_names[p_idx]);
@@ -227,7 +223,7 @@ void Trajectory::analyze()
         {
         // read into memory from Frames or by overriden read()
         read();
-        
+
         // sort and validate the frames
         sortFrames();
         validate();

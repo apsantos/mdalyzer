@@ -101,9 +101,18 @@ class Trajectory : boost::noncopyable
             {
             return m_type_map;
             }
-//         const std::vector<unsigned int>& getTypes(unsigned int frame_id = 0xffffff) const;
-//         const std::vector<double>& getDiameters(unsigned int frame_id = 0xffffff) const;
-//         const std::vector<double>& getMasses(unsigned int frame_id = 0xffffff) const;
+        const std::vector<unsigned int>& getTypes() const
+            {
+            return m_types;
+            }
+        const std::vector<double>& getMasses() const
+            {
+            return m_masses;
+            }
+        const std::vector<double>& getDiameters() const
+            {
+            return m_diameters;
+            }
         
     protected:
         bool m_must_read_from_file; //!< Flag if trajectory should be (re-)read from file

@@ -8,7 +8,7 @@
 #include "Frame.h"
 
 #include "Analyzer.h"
-// #include "DensityProfile.h"
+#include "DensityProfile.h"
 // #include "MeanSquaredDisplacement.h"
 
 #include "VectorMath.h"
@@ -38,7 +38,7 @@ BOOST_PYTHON_MODULE(libmdalyzer)
 //     export_HOOMDXMLFrame();
     
     // computes
-//     export_Compute();
-//     export_DensityProfile();
+    export_Analyzer();
+    export_DensityProfile();
 //     export_MeanSquaredDisplacement();
     }

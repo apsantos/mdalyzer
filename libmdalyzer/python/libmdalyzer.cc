@@ -3,10 +3,10 @@
 #include <boost/python.hpp>
 
 #include "Trajectory.h"
+#include "DCDTrajectory.h"
 
 #include "Frame.h"
 #include "HOOMDXMLFrame.h"
-#include "DCDTrajectory.h"
 
 #include "Compute.h"
 #include "DensityProfile.h"

@@ -1,5 +1,8 @@
-/*! \file HOOMDXMLTrajectory.h
- *  \author Michael P. Howard
+/*!
+ * \file HOOMDXMLTrajectory.h
+ * \author Michael P. Howard
+ * \date 16 December 2014
+ * \brief Declaration of HOOMDXMLTrajectory reader
  */
 #ifndef MDALYZER_TRAJECTORIES_HOOMDXMLTRAJECTORY_H_
 #define MDALYZER_TRAJECTORIES_HOOMDXMLTRAJECTORY_H_
@@ -9,32 +12,36 @@
 #include <vector>
 #include "pugixml.hpp"
 
-/*! \class HOOMDXMLFrame
- *  \brief HOOMD XML parser
+//! HOOMD XML parser
+/*!
+ *  Implementation of the Trajectory for HOOMD XML file format (v. >= 1.0 support). The pugixml reader
+ *  is used to manipulate the XML files.
  *
- *  Extension of the Frame data structure that parses HOOMD XML output (v. 1.0.0 or more recent). The pugixml reader
- *  is used to 
- *
- *  \ingroup frames
+ *  \ingroup trajectories
  */
 class HOOMDXMLTrajectory : public Trajectory
     {
     public:
-        HOOMDXMLTrajectory();
+        //! default constructor
+        HOOMDXMLTrajectory() {};
+        
+        //! default destructor
         virtual ~HOOMDXMLTrajectory() {};
         
+        //! attach a file to be parsed
         void addFile(const std::string& f);
         
+        //! reads all attached files into Frame
         virtual void read();
     private:
-        static float s_supported_hoomd_version;
+        static float s_supported_hoomd_version;     //!< Flag for HOOMD support level
+        std::vector<std::string> m_files;           //!< List of files to parse
         
-        std::vector<std::string> m_files;
+        //! internal method for reading a single HOOMD XML file into a Frame
         boost::shared_ptr<Frame> readFromFile(const std::string& f);
-        
-        inline void tryParticlesFromNode(pugi::xml_node node);
     };
 
+//! Python export for HOOMDXMLTrajectory
 void export_HOOMDXMLTrajectory();
 
 #endif //MDALYZER_TRAJECTORIES_HOOMDXMLTRAJECTORY_H_

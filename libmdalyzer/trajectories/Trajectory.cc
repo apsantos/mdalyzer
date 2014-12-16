@@ -1,3 +1,9 @@
+/*!
+ * \file Trajectory.cc
+ * \author Michael P. Howard
+ * \date 16 December 2014
+ * \brief Implementation of Trajectory data structure
+ */
 #include "Trajectory.h"
 
 #include <algorithm>
@@ -7,70 +13,65 @@
 #include <boost/python.hpp>
 
 Trajectory::Trajectory()
-    : m_must_read_from_file(true), m_loc_box(NONE), m_loc_names(NONE),
-    m_loc_types(NONE), m_loc_diameters(NONE), m_loc_masses(NONE), m_n_particles(0), m_sorted(false)
+    : m_must_read_from_file(true), m_n_particles(0), m_sorted(false), m_loc_box(NONE), m_loc_names(NONE),
+    m_loc_types(NONE), m_loc_diameters(NONE), m_loc_masses(NONE)
     {
     }
 
 /*!
- * \param compute Shared pointer to new Compute
- * \param name String key for the Compute, generated on Python level
- *
- * As each frame in the Trajectory is read, each Compute is queried to determine if it needs to calculate on a Frame.
- * We store Computes in a map to make it easier to iterate on them as boost:shared_ptrs.
+ * \param compute Shared pointer to new Analyzer
+ * \param name key for the Analyzer
  */    
-void Trajectory::addCompute(boost::shared_ptr<Analyzer> compute, const std::string& name)
+void Trajectory::addAnalyzer(boost::shared_ptr<Analyzer> analyzer, const std::string& name)
     {
-    std::map< std::string, boost::shared_ptr<Analyzer> >::iterator compute_i = m_computes.find(name);
-    if (compute_i == m_computes.end())
+    std::map< std::string, boost::shared_ptr<Analyzer> >::iterator analyzer_i = m_analyzers.find(name);
+    if (analyzer_i == m_analyzers.end())
         {
-        m_computes[name] = compute;
+        m_analyzers[name] = analyzer;
         }
     else
         {
-        // Do some type of error handling, like throw an exception
+        throw std::runtime_error("Trajectory: cannot add Analyzer with same name");
+        }
+    }
+
+/*! \param name key for the Compute to remove, as assigned when added. */
+void Trajectory::removeAnalyzer(const std::string& name)
+    {
+    std::map< std::string, boost::shared_ptr<Analyzer> >::iterator analyzer_i = m_analyzers.find(name);
+    if (analyzer_i != m_analyzers.end())
+        {
+        m_analyzers.erase(analyzer_i);
+        }
+    else
+        {
+        throw std::runtime_error("Trajectory: cannot remove non-existent Analyzer");
         }
     }
 
 /*!
- * \param name String key for the Compute to remove, as assigned when added
- *
- * The Compute is erased from the map, so this is a harsh removal. All associated data for the Compute is destroyed.
+ * \param name key for the Analyzer to return, as assigned when added
+ * \returns A pointer to the Analyzer
  */
-void Trajectory::removeCompute(const std::string& name)
+boost::shared_ptr<Analyzer> Trajectory::getAnalyzer(const std::string& name)
     {
-    std::map< std::string, boost::shared_ptr<Analyzer> >::iterator compute_i = m_computes.find(name);
-    if (compute_i != m_computes.end())
+    std::map< std::string, boost::shared_ptr<Analyzer> >::iterator analyzer_i = m_analyzers.find(name);
+    if (analyzer_i != m_analyzers.end())
         {
-        m_computes.erase(compute_i);
+        return m_analyzers[name];
         }
     else
         {
-        // Doesn't exist, can't delete
-        }
-    }
-
-/*!
- * \param name String key for the Compute to return, as assigned when added
- *
- * \returns A shared pointer to the Compute
- */
-boost::shared_ptr<Analyzer> Trajectory::getCompute(const std::string& name)
-    {
-    std::map< std::string, boost::shared_ptr<Analyzer> >::iterator compute_i = m_computes.find(name);
-    if (compute_i != m_computes.end())
-        {
-        return m_computes[name];
-        }
-    else
-        {
-        // Doesn't exist, raise hell and return a null pointer
+        throw std::runtime_error("Trajectory: requested Analyzer does not exist");
         return boost::shared_ptr<Analyzer>(); // null ptr
         }
     }
 
 
-//! add an atom name to the trajectory type map
+/*!
+ * \param name particle name
+ * \returns integer id for type
+ */
 unsigned int Trajectory::addName(const std::string& name)
     {
     std::map<std::string, unsigned int>::iterator cur_type = m_type_map.find(name);
@@ -82,7 +83,7 @@ unsigned int Trajectory::addName(const std::string& name)
     return m_type_map[name];
     }
     
-//! remove an atom name from the type map
+/*! \param name particle name */
 void Trajectory::removeName(const std::string& name)
     {
     std::map<std::string, unsigned int>::iterator cur_type = m_type_map.find(name);
@@ -90,7 +91,10 @@ void Trajectory::removeName(const std::string& name)
         m_type_map.erase(cur_type);
     }
     
-//! convert atom name to trajectory type id number
+/*!
+ * \param name particle name
+ * \returns integer id for type
+ */
 unsigned int Trajectory::getTypeByName(const std::string& name)
     {
     std::map<std::string, unsigned int>::iterator cur_type = m_type_map.find(name);
@@ -100,7 +104,10 @@ unsigned int Trajectory::getTypeByName(const std::string& name)
     return m_type_map[name];
     }
 
-//! convert trajectory type id to atom name
+/*!
+ * \param type integer id for type
+ * \returns name particle name
+ */
 std::string Trajectory::getNameByType(unsigned int type)
     {
     std::map<std::string, unsigned int>::iterator cur_type;
@@ -112,53 +119,76 @@ std::string Trajectory::getNameByType(unsigned int type)
     throw std::runtime_error("Trajectory: type not found");
     return "";
     }
-
-struct frameCompare
+   
+   
+//! wrapper for time ordering shared pointers to frames
+/*!
+ * We need to access the time property of Frame objects in order to time sort them. Since we have pointers
+ * we cannot simply overload the comparison operator for the Frame, so we use a wrapper struct to do the
+ * comparison.
+ */
+struct FrameCompare
     {
-        inline bool operator()(boost::shared_ptr<Frame> f1, boost::shared_ptr<Frame> f2)
-            {
-            return (f1->getTime() < f2->getTime());
-            }
-    };
+    //! operator for comparison
+    /*! 
+     * \param f1 first frame
+     * \param f2 second frame
+     * \returns true if first frame has time earlier than second frame
+     */
+    inline bool operator()(boost::shared_ptr<Frame> f1, boost::shared_ptr<Frame> f2)
+        {
+        return (f1->getTime() < f2->getTime());
+        }
+    }; 
+/*!
+ * Uses the STL sort along with FrameCompare to time order the Frames.
+ * \sa FrameCompare
+ */
 void Trajectory::sortFrames()
     {
-    std::sort(m_frames.begin(), m_frames.end(), frameCompare());
+    std::sort(m_frames.begin(), m_frames.end(), FrameCompare());
     }
 
 /*!
- * An abstract trajectory does not read
+ * A plain Trajectory currently may be instantiated but not read.
  */    
 void Trajectory::read()
     {
     }
-    
-//! parse the type map and other trajectory long properties
-// void Trajectory::parse()
-//     {
-//     }
 
 /*!
- * Perform simple checks on the Trajectory, and cleanup Frame discrepancies
+ * Check simple things for the trajectory:
+ *      + The Trajectory has at least one frame
+ *      + Each Frame is in time order
+ *      + The number of particles is constant
  */
 void Trajectory::validate()
     {
+    if (m_frames.size() == 0)
+        throw std::runtime_error("Trajectory: no Frame attached for analysis");
+    
     double last_frame_time = 0.;
     for (unsigned int cur_frame=0; cur_frame != m_frames.size(); ++cur_frame)
         {
         // check for time ordering
         if (cur_frame > 0 && m_frames[cur_frame]->getTime() <= last_frame_time)
             {
-            // error handling, throw an exception and bail
+            throw std::runtime_error("Trajectory: bug, frames are not time ordered");
             }
             
         // check for number of particle staying the same if needed
-        
-        // force type mapping to be the same
+        if (m_frames[cur_frame]->getN() != m_frames[0]->getN())
+            throw std::runtime_error("Trajectory: all frames must have the same number of particles");
         
         last_frame_time = m_frames[cur_frame]->getTime();
         }
     }
-    
+
+/*!
+ * Extracts information from the first Frame of the Trajectory if this data has not already been set by the user.
+ * String particle names are then read into a Trajectory type map, which maps strings to integer identifiers.
+ * The atom types are then set for each Frame using this type map.
+ */    
 void Trajectory::parse()
     {
     m_n_particles = m_frames[0]->getN();
@@ -214,15 +244,21 @@ void Trajectory::parse()
         }
     }
 
+/*!
+ * Main execution loop for the Trajectory with exception catching. The Trajectory is first read into memory.
+ * Frames are time ordered, and validated to stop the user from doing anything crazy. Trajectory level information
+ * is extracted from the Frames. Calculations are then performed by iterating over Analyzers.
+ */
 void Trajectory::analyze()
     {
-    std::map< std::string, boost::shared_ptr<Analyzer> >::iterator cur_compute;
+    std::map< std::string, boost::shared_ptr<Analyzer> >::iterator cur_analyzer;
     
     // main execution loop, so we want to catch exceptions as they are thrown and abort
     try
         {
         // read into memory from Frames or by overriden read()
-        read();
+        if (m_must_read_from_file)
+            read();
 
         // sort and validate the frames
         sortFrames();
@@ -231,10 +267,10 @@ void Trajectory::analyze()
         
         // enter the compute loop
         // if computes should be cleaned up, they need to do this after they are done
-        for (cur_compute = m_computes.begin(); cur_compute != m_computes.end(); ++cur_compute)
+        for (cur_analyzer = m_analyzers.begin(); cur_analyzer != m_analyzers.end(); ++cur_analyzer)
             {
             // perform the evaluation
-            cur_compute->second->evaluate();
+            cur_analyzer->second->evaluate();
             }
         }
     catch (std::exception const & e)
@@ -244,8 +280,11 @@ void Trajectory::analyze()
         }
     }
 
+//! Boost Python wrapper for the Trajectory
 /*!
- * Boost needs us to define a wrapper around Trajectory
+ * read() is a virtual function, so Boost Python needs an explicit wrapper for it. We want to be able to instantiate
+ * plain Trajectory classes in case in the future the user could attach Frame content on the scripting level without
+ * using a reader, so read() cannot be pure virtual. This means that we must default to an empty read() implementation.
  */
 struct TrajectoryWrap : public Trajectory, boost::python::wrapper<Trajectory>
     {
@@ -267,9 +306,9 @@ void export_Trajectory()
     using namespace boost::python;
     class_<Trajectory, boost::shared_ptr<Trajectory>, boost::noncopyable >("Trajectory", init<>())
     .def("analyze",&Trajectory::analyze)
-    .def("addCompute",&Trajectory::addCompute)
-    .def("removeCompute",&Trajectory::removeCompute)
-    .def("getCompute",&Trajectory::getCompute)
+    .def("addCompute",&Trajectory::addAnalyzer)
+    .def("removeCompute",&Trajectory::removeAnalyzer)
+    .def("getCompute",&Trajectory::getAnalyzer)
     .def("getFrame",&Trajectory::getFrame)
     .def("read", &Trajectory::read, &TrajectoryWrap::default_read);
     }

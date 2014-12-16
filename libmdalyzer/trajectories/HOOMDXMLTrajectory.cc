@@ -1,6 +1,8 @@
-/*! \file HOOMDXMLTrajectory.cc
- *  \author Michael P. Howard
- *  \brief Reads HOOMD XML files
+/*! 
+ * \file HOOMDXMLTrajectory.cc
+ * \author Michael P. Howard
+ * \date 16 December 2014
+ * \brief Reads HOOMD XML files
  */
 #include "HOOMDXMLTrajectory.h"
 
@@ -8,24 +10,41 @@
 #include <sstream>
 #include <iostream>
 
-HOOMDXMLTrajectory::HOOMDXMLTrajectory()
-    {
-    }
-
+/*!
+ * Loops over all attached files and calls readFromFile(const std::string& f) on them.
+ */
 void HOOMDXMLTrajectory::read()
     {
     for (unsigned int cur_f = 0; cur_f < m_files.size(); ++cur_f)
         {
         m_frames.push_back(readFromFile(m_files[cur_f]));
         }
+    m_must_read_from_file = false;
     }
 
+/*!
+ * \param f file name to attach
+ *
+ * Any time a new file is attached, the Trajectory must be re-read from file. This could be handled in a smart way
+ * flushing the read file list so that only newly added files are read, and not everything. This should be considered
+ * in read() in the future.
+ *
+ * \note error checking for duplicates is currently not enabled, but we will implement this soon.
+ */
 void HOOMDXMLTrajectory::addFile(const std::string& f)
     {
+    m_must_read_from_file = true;
     m_files.push_back(f); // error check this later
     }
 
-/*! Main routine to parse out the necessary information from file (v.1.0 supported)
+/*! 
+ * \param f file to parse
+ * \returns shared pointer to the newly read Frame
+ *
+ * The pugixml reader is used to manage the XML parsing. We rely on the HOOMD XML standards when reading, so
+ * a Frame is required to have a timestep and a box set. If either of these does not exist, an exception is thrown.
+ * The simulation box may be triclinic, so we save the tilt factors. If the image properties are supplied, we unwrap the
+ * particle positions.
  */
 boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
     {
@@ -69,7 +88,6 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     throw std::runtime_error("HOOMDXMLTrajectory: poorly formed xml, all box lengths must be set");
                     }
                                        
-                
                 // check for tilt (version 1.5 and newer)
                 Vector3<double> tilt(0.,0.,0.);
                 if (hoomd_version >= 1.5)
@@ -234,7 +252,6 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame->setNames(names);
                     }
                 }  
-                
             }
         else
             {
@@ -250,7 +267,6 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
     return cur_frame;
     }
 
-//! Python export for HOOMDXMLTrajectory
 void export_HOOMDXMLTrajectory()
     {
     using namespace boost::python;

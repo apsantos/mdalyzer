@@ -22,7 +22,7 @@
 class DCDTrajectory : public Trajectory
     {
     public:
-        DCDTrajectory(const std::string& fileName, const unsigned int& frequency);
+        DCDTrajectory(const std::string& fileName);
         virtual ~DCDTrajectory() {};
         virtual void read();
         virtual void readHeader(FILE* fileptr);
@@ -45,8 +45,8 @@ class DCDTrajectory : public Trajectory
         double m_time_step;
         unsigned int m_n_dcdparticles;
         unsigned int m_n_frames;
-        const std::string m_file;
-        const unsigned int m_frequency;  // DCD timestep output frequency
+        unsigned int m_frame_skip;
+        const std::string m_file; // file name
         
     };
 

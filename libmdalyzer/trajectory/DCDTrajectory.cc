@@ -10,13 +10,13 @@
 
 /*! \param file Path to DCD file to read
  */
-DCDTrajectory::DCDTrajectory(const std::string& fileName, const unsigned int& frequency)
-    : m_file(fileName), m_frequency(frequency)
+DCDTrajectory::DCDTrajectory(const std::string& fileName)
+    : m_file(fileName)
     {
     }
 
-
-/*! Main routine to parse out the necessary information from file
+/*! Routine to read header information of the DCD file, check errors and interface the
+    external library ReadDCD.cc to mdalyzer 
  */
 void DCDTrajectory::readHeader(FILE* fileptr)
     {
@@ -29,20 +29,13 @@ void DCDTrajectory::readHeader(FILE* fileptr)
 
     m_n_dcdparticles = std::abs(m_n_dcdparticles_c);
     m_n_frames = std::abs(m_n_frames_c);
-/*
-    m_frame_start = std::abs(frameStart);
-    m_frame_skip  = std::abs(frameSkip);
-    m_freeparticles = freeatoms;
-    m_reverse_endian = std::abs(reverseEndian);
-    m_namnf = std::abs(namnf);
-    m_charmm_flags = std::abs(charmm_flags);
-*/
+    m_frame_skip = std::abs(m_frame_skip_c);
 
     if (errcode < 0 || m_n_dcdparticles <= 0) 
         {
         if (errcode == DCD_BADFORMAT)
             {
-            throw std::runtime_error( "ERROR: (DCDTrajectory) Improper format for DCD file" + m_file);
+            throw std::runtime_error( "ERROR: (DCDTrajectory) Improper format for DCD file Header" + m_file);
             }
         else if (errcode == DCD_BADMALLOC)
             {
@@ -59,6 +52,9 @@ void DCDTrajectory::readHeader(FILE* fileptr)
         } 
     }
 
+/*! Routine to read a time step from the DCD file, check errors and interface the
+    external library ReadDCD.cc to mdalyzer 
+ */
 void DCDTrajectory::readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& positions)
     {
     // read in next step, if available
@@ -106,6 +102,8 @@ void DCDTrajectory::readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& 
     delete [] Z;
     }
 
+/*! Main routine to parse out the necessary information from file
+ */
 void DCDTrajectory::read()
     {
 
@@ -126,66 +124,21 @@ void DCDTrajectory::read()
 
     // check that the number of paticles in the DCD match with the input file
 
-    // could possibly add the option to read a specific range of the DCD file trajectory
-    // read the DCD timestep
     for (unsigned int frame_idx = 0; frame_idx < m_n_frames; ++frame_idx)
         {
         std::vector< Vector3<double> > pos;
         readTimeStep(fileptr, pos);
         }
-    // convert 
+    m_has_positions = true;
 
     // close DCD file
-    }
-    /*
-void DCDTrajectory::readHeader(const std::ifstream& file, bool pbd_info)
-    {
-    // read a line
-    }
-    std::istringstream iss_line(line);
-
-	std::string header;
-    std::vector<int> d(8, 0); // dummy variable
-    int pbd_info_int = 0 ;
-    iss_line >> line >> header >> n_frames >> start_step >> interval >> d[2] >> d[3] >> d[4] >> d[5] >> d[6] >> d[7] >> delta >>  pbd_info_int ;
-
-    bool pbd_info = false ;
-    if ( pbd_info_int == 1 )
-        {
-        pbd_info = true ;
-        }
-    file >> line;   // read an empty lien
-    file >> m_n_particles; 
-    // check that the number of paticles in the DCD match with the input file
-
-    if (pbd_info)
-        {
-        readPDBinfo(file);
-        }
-
-    // skip three lines of header
-    file >> line;
-    file >> line;
-    file >> line;
+    close_dcd_read(fileptr, m_n_fixed_c, m_freeparticles_c);
     }
 
-
-void DCDTrajectory::readPDBinfo(const std::ifstream file)
-    {
-	std::string pbd_line;
-    // read a line
-    getline(file, pbd_line);
-    std::istringstream iss_line(pbd_line);
-
-    std::vector<int> XLTABC(6, 0) ;
-    iss_line >> pbd_line >> XLTABC[0] >> XLTABC[1] >> XLTABC[2] >> XLTABC[3] >> XLTABC[4] >> XLTABC[5] ;
-
-    }
-*/
 //! Python export for DCDTrajectory
 void export_DCDTrajectory()
     {
     using namespace boost::python;
     class_<DCDTrajectory, boost::shared_ptr<DCDTrajectory>, bases<Trajectory>, boost::noncopyable >
-    ("DCDTrajectory", init< const std::string&, const unsigned int& >());
+    ("DCDTrajectory", init< const std::string& >());
     }

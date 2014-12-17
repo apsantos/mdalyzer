@@ -2,7 +2,7 @@
 # user configurable options
 #####
 CC := g++
-INSTALL_DIR := bin
+INSTALL_PATH := bin
 BUILD_PATH := build
 PYTHON_VERSION := 2.7
 PYTHON_PATH :=/usr/global/python/2.7.8/
@@ -45,12 +45,12 @@ $(BUILD_DIR):
 
 clean:
 	@rm -rf $(BUILD_PATH)/*
-	@rm -rf $(INSTALL_DIR)/mdalyzer/*.pyc
+	@rm -rf $(INSTALL_PATH)/mdalyzer/*.pyc
 
 install:
-	@mkdir -p $(INSTALL_DIR)
-	@cp $(BUILD_PATH)/$(TARGET).so $(INSTALL_DIR)/
-	@cp -r mdalyzer $(INSTALL_DIR)/
+	@mkdir -p $(INSTALL_PATH)
+	@cp $(BUILD_PATH)/$(TARGET).so $(INSTALL_PATH)/
+	@cp -r mdalyzer $(INSTALL_PATH)/
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
 

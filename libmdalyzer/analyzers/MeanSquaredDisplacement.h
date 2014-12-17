@@ -2,20 +2,20 @@
  *  \author Andrew P. Santos
  *  \brief Compute for the mean squared displacement 
  */
-#ifndef MDALYZER_COMPUTES_MEANSQUAREDDISPLACEMENTT_H_
-#define MDALYZER_COMPUTES_MEANSQUAREDDISPLACEMENTT_H_
+#ifndef MDALYZER_ANALYZERS_MEANSQUAREDDISPLACEMENTT_H_
+#define MDALYZER_ANALYZERS_MEANSQUAREDDISPLACEMENTT_H_
 
 #include <string>
 #include <vector>
 #include <fstream>
-#include "Compute.h"
+#include "Analyzer.h"
 #include "VectorMath.h"
 
 /*!
  *
  * \ingroup computes
  */
-class MeanSquaredDisplacement : public Compute
+class MeanSquaredDisplacement : public Analyzer
     {
     public:
         MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const unsigned int& origins);
@@ -35,4 +35,4 @@ class MeanSquaredDisplacement : public Compute
     };
 
 void export_MeanSquaredDisplacement();
-#endif // MDALYZER_COMPUTES_MEANSQUAREDDISPLACEMENTT_H_
+#endif // MDALYZER_ANALYZERS_MEANSQUAREDDISPLACEMENTT_H_

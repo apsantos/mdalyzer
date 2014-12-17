@@ -10,7 +10,7 @@
 #include <boost/python.hpp>
 
 Clustering::Clustering(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const double& atom_dist)
-    : Compute(traj), m_file_name(file_name), m_atom_dist(atom_dist)
+    : Analyzer(traj), m_file_name(file_name), m_atom_dist(atom_dist)
     {
     }
 
@@ -106,7 +106,7 @@ void Clustering::evaluate()
 void export_Clustering()
     {
     using namespace boost::python;
-    class_<Clustering, boost::shared_ptr<Clustering>, bases<Compute>, boost::noncopyable >
+    class_<Clustering, boost::shared_ptr<Clustering>, bases<Analyzer>, boost::noncopyable >
     ("Clustering", init< boost::shared_ptr<Trajectory>, const std::string&, double& >());
     }
     

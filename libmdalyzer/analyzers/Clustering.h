@@ -2,20 +2,20 @@
  *  \author Sang Beom Kim
  *  \brief Compute for the clustering of atoms
  */
-#ifndef MDALYZER_COMPUTES_CLUSTERING_H_
-#define MDALYZER_COMPUTES_CLUSTERING_H_
+#ifndef MDALYZER_ANALYZERS_CLUSTERING_H_
+#define MDALYZER_ANALYZERS_CLUSTERING_H_
 
 #include <string>
 #include <vector>
 #include <fstream>
-#include "Compute.h"
+#include "Analyzer.h"
 #include "VectorMath.h"
 
 /*!
  *
  * \ingroup computes
  */
-class Clustering : public Compute
+class Clustering : public Analyzer
     {
     public:
         Clustering(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const double& atom_dist);
@@ -32,4 +32,4 @@ class Clustering : public Compute
     };
 
 void export_Clustering();
-#endif // MDALYZER_COMPUTES_CLUSTERING_H_
+#endif // MDALYZER_ANALYZERS_CLUSTERING_H_

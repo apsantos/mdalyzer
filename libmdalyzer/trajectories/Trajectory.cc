@@ -310,5 +310,9 @@ void export_Trajectory()
     .def("removeCompute",&Trajectory::removeAnalyzer)
     .def("getCompute",&Trajectory::getAnalyzer)
     .def("getFrame",&Trajectory::getFrame)
+    .def("setBox",&Trajectory::setBox)
+    .def("setNames",&Trajectory::setNames)
+    .def("setDiameters",&Trajectory::setDiameters)
+    .def("setMasses",&Trajectory::setMasses)
     .def("read", &Trajectory::read, &TrajectoryWrap::default_read);
     }

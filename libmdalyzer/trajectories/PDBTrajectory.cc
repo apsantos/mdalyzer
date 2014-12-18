@@ -27,13 +27,13 @@ void PDBTrajectory::read()
         std::ifstream file(m_files[cur_f].c_str());
         if (!file.good())
         {
-        throw std::runtime_error("PDBTrajectory: cannot find PDB file " + m_file);
+        throw std::runtime_error("PDBTrajectory: cannot find PDB file " + m_files[cur_f]);
         }
         
         // read frames until the end
         while ( !file.eof() )
             {
-            m_frames.push_back(readFromFile(file, m_is_eof));
+            m_frames.push_back(readFromFile(file));
             }
         
         file.close();
@@ -60,8 +60,7 @@ void PDBTrajectory::addFile(const std::string& f)
  * \param f file to parse
  * \returns shared pointer to the newly read Frame
  *
- * The pugixml reader is used to manage the XML parsing. We rely on the HOOMD XML standards when reading, so
- * a Frame is required to have a timestep and a box set. If either of these does not exist, an exception is thrown.
+ * A Frame is required to have a timestep and a box set. If either of these does not exist, an exception is thrown.
  * The simulation box may be triclinic, so we save the tilt factors. If the image properties are supplied, we unwrap the
  * particle positions.
  */
@@ -91,7 +90,7 @@ boost::shared_ptr<Frame> PDBTrajectory::readFromFile(std::ifstream& file)
         std::istringstream iss_line(line);
         
         // check the first word
-        iss_line >> first_word
+        iss_line >> first_word;
         
         // ENDMDL marks the end of a frame
         if ( first_word.compare("ENDMDL") != 0 )
@@ -100,7 +99,7 @@ boost::shared_ptr<Frame> PDBTrajectory::readFromFile(std::ifstream& file)
         if ( first_word.compare("TITLE") == 0 )
             {
             // find the time step
-            while ( first_word.compare("t=") != 0 ) )
+            while ( first_word.compare("t=") != 0 )
                 iss_line >> first_word;
                 
             iss_line >> time_step;

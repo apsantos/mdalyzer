@@ -14,7 +14,7 @@
 #include <boost/python.hpp>
 
 g2r::g2r(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const double delR, const double maxR)
-   : Compute(traj), m_file_name(file_name), m_delR(delR), m_maxR(maxR)
+   : Analyzer(traj), m_file_name(file_name), m_delR(delR), m_maxR(maxR)
    {
    }
 

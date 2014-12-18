@@ -9,7 +9,7 @@
 #include <boost/python.hpp>
 
 MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const unsigned int&  origins)
-    : Compute(traj), m_file_name(file_name), m_origins(origins)
+    : Analyzer(traj), m_file_name(file_name), m_origins(origins)
     {
     m_type_names.reserve(m_traj->getNumTypes());
     }
@@ -55,7 +55,7 @@ void MeanSquaredDisplacement::evaluate()
     msd.y.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
     msd.z.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
 
-    std::vector<std::string> type;
+    std::vector<unsigned int> type;
     if (frames[0]->hasTypes())
         {
         type = frames[0]->getTypes();
@@ -98,7 +98,7 @@ void MeanSquaredDisplacement::evaluate()
                 for (unsigned int iatom = 0; iatom < m_traj->getN(); ++iatom)
                     {
                     // check if this atom is one of our types
-                    unsigned int type_idx_iatom = (m_type_names.size() > 0 && m_traj->hasTypes()) ? m_traj->getTypeByName(type[iatom]) : 0;
+                    unsigned int type_idx_iatom = (m_type_names.size() > 0 && m_traj->hasTypes()) ? type[iatom] : 0;
                     Vector3<double> cur_pos = pos[iatom];
                     Vector3<double> cur_origin_pos = origin_pos[iatom];
                     Vector3<double> diff_pos = cur_pos - cur_origin_pos;
@@ -121,7 +121,7 @@ void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<flo
     // if no types are specified, use all particles
     unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); 
 
-    std::vector<std::string> type;
+    std::vector<unsigned int> type;
     if (frames[0]->hasTypes())
         {
         type = frames[0]->getTypes();
@@ -139,7 +139,7 @@ void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<flo
         type_map[cur_type] = m_traj->getTypeByName(m_type_names[cur_type]);
 
         // count the number of particles in each type
-        num_particle_type[cur_type] = std::count ( type.begin(), type.end(), m_type_names[cur_type] );
+        num_particle_type[cur_type] = std::count ( type.begin(), type.end(), type_map[cur_type] );
         }
 
     // output
@@ -172,7 +172,7 @@ void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<flo
 void export_MeanSquaredDisplacement()
     {
     using namespace boost::python;
-    class_<MeanSquaredDisplacement, boost::shared_ptr<MeanSquaredDisplacement>, bases<Compute>, boost::noncopyable >
+    class_<MeanSquaredDisplacement, boost::shared_ptr<MeanSquaredDisplacement>, bases<Analyzer>, boost::noncopyable >
     ("MeanSquaredDisplacement", init< boost::shared_ptr<Trajectory>, const std::string&, const unsigned int& >())
     .def("addType",&MeanSquaredDisplacement::addType)
     .def("deleteType",&MeanSquaredDisplacement::deleteType);

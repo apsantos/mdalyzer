@@ -1,12 +1,9 @@
 import libmdalyzer
 
-from mdalyzer import compute
-
 class trajectory(object):
     """Base class for Trajectory"""
     def __init__(self):
-        self.cpp = libmdalyzer.Trajectory()
-        self.attached_computes = []
+        self.cpp = None
     
     def analyze(self):
         """Perform Trajectory analysis"""
@@ -15,8 +12,8 @@ class trajectory(object):
 
 class hoomd(trajectory):
     """HOOMD XML trajectory object"""
-    def __init(self):
-        trajectory.__init__(self)
+    def __init__(self):
+        self.cpp = libmdalyzer.HOOMDXMLTrajectory()
         
     def add(self, files):
         """Add frames by file name"""
@@ -24,6 +21,5 @@ class hoomd(trajectory):
             files = [files]
             
         for file in files:            
-            frame = libmdalyzer.HOOMDXMLFrame(file)
-            self.cpp.addFrame(frame)
+            self.cpp.addFile(file)
             

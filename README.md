@@ -11,35 +11,24 @@ Code is tested to compile under (and requires):
 
 To install, configure the first four lines of the Makefile to set:
 * `CC = g++` (compiler)
-* `INSTALL_DIR = bin` (installation path)
+* `INSTALL_PATH = bin` (installation path)
+* `BUILD_PATH = build` (build directory)
 * `PYTHON_VERSION = 2.7` (compatible version of python, not recommended to change)
 * `BOOST_LIB = /path/to/boost` (path to your Boost libraries)
 
 make && make install will compile and install mdalyzer.
 
 ## Example
-From a Python script or prompt in the same directory as libmdalyzer.so library, a crude Python script
-interfacing with the C++ backend is below:
+With the mdalyzer installation path also on the PYTHONPATH, an example script for computing the density profile is:
 
-	# load the module
-	import libmdalyzer as md
+	from mdalyzer import *
 
-	# setup the Trajectory and attach Frames
-	t = md.Trajectory()
-	f1 = md.HOOMDXMLFrame("frame1.xml")
-	f2 = md.HOOMDXMLFrame("frame2.xml")
-	t.addFrame(f1)
-	t.addFrame(f2)
+	t = trajectory.hoomd()
+	t.add(['frame1.xml','frame2.xml'])
 
-	# setup the Compute
-	dens = md.DensityProfile(t,"density",md.Vector3uint(11,0,0))
-	dens.useMassWeighting(True)
-	dens.addType('B')
-	dens.addType('A')
-	t.addCompute(dens,"density")
+	analyzer.density(traj=t, file_name='density', nx=11, types=['A','B'], weight=False)
 
-	# perform the analysis
 	t.analyze()
 
 ## Overview
-All C++ files can be found in `./libmdalyzer`.
+All C++ files can be found in `./libmdalyzer`. The Python wrapper module can be found `./mdalyzer`

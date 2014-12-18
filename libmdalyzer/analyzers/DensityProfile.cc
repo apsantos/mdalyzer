@@ -3,13 +3,14 @@
 #include "Frame.h"
 #include "TriclinicBox.h"
 
+#include <cmath>
 #include <fstream>
 #include <algorithm>
 
 #include <boost/python.hpp>
 
 DensityProfile::DensityProfile(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const Vector3<unsigned int>& bins)
-    : Compute(traj), m_file_name(file_name), m_bins(bins), m_mass_weighted(true)
+    : Analyzer(traj), m_file_name(file_name), m_bins(bins), m_mass_weighted(true)
     {
     m_type_names.reserve(m_traj->getNumTypes());
     }
@@ -111,7 +112,7 @@ void DensityProfile::evaluate()
             }
         std::vector< Vector3<double> > pos = cur_frame->getPositions();
         
-        std::vector<std::string> type;
+        std::vector<unsigned int> type;
         if (cur_frame->hasTypes())
             {
             type = cur_frame->getTypes();
@@ -134,7 +135,7 @@ void DensityProfile::evaluate()
         for (unsigned int i=0; i < m_traj->getN(); ++i)
             {
             // check if this atom is one of our types
-            unsigned int type_idx_i = (m_type_names.size() > 0 && m_traj->hasTypes()) ? m_traj->getTypeByName(type[i]) : 0;
+            unsigned int type_idx_i = (m_type_names.size() > 0 && m_traj->hasTypes()) ? type[i] : 0;
             
             // we do a wrap of the positions back into an orthorhombic box that ensures they lie on [0,L)
             // since we are not in the business of doing triclinic density profiles. This ensures that the
@@ -142,17 +143,17 @@ void DensityProfile::evaluate()
             Vector3<double> cur_pos = pos[i];
             if (m_bins.x > 0)
                 {
-                cur_pos.x -= box_len.x*round(cur_pos.x/box_len.x);
+                cur_pos.x -= box_len.x*floor(cur_pos.x/box_len.x);
                 density.x[type_idx_i][(unsigned int)(cur_pos.x/dr.x)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             if (m_bins.y > 0)
                 {
-                cur_pos.y -= box_len.y*round(cur_pos.y/box_len.y);
+                cur_pos.y -= box_len.y*floor(cur_pos.y/box_len.y);
                 density.y[type_idx_i][(unsigned int)(cur_pos.y/dr.y)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             if (m_bins.z > 0)
                 {
-                cur_pos.z -= box_len.z*round(cur_pos.z/box_len.z);
+                cur_pos.z -= box_len.z*floor(cur_pos.z/box_len.z);
                 density.z[type_idx_i][(unsigned int)(cur_pos.z/dr.z)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             }
@@ -261,7 +262,7 @@ void DensityProfile::evaluate()
 void export_DensityProfile()
     {
     using namespace boost::python;
-    class_<DensityProfile, boost::shared_ptr<DensityProfile>, bases<Compute>, boost::noncopyable >
+    class_<DensityProfile, boost::shared_ptr<DensityProfile>, bases<Analyzer>, boost::noncopyable >
     ("DensityProfile", init< boost::shared_ptr<Trajectory>, const std::string&, Vector3<unsigned int>& >())
     .def("addType",&DensityProfile::addType)
     .def("deleteType",&DensityProfile::deleteType)

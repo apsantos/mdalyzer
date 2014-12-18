@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include "Compute.h"
+#include "Analyzer.h"
 #include "VectorMath.h"
 
-class g2r : public Compute {
+class g2r : public Analyzer {
   public:
    g2r(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const double delR, const double maxR);
    virtual ~g2r() {};

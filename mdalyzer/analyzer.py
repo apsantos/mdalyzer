@@ -1,21 +1,21 @@
 import libmdalyzer
 
-class compute(object):
+class analyzer(object):
     counter = 0
     def __init__(self, trajectory, file_name, name):
         self.trajectory = trajectory
         self.file_name = file_name
         
         if name is None:
-            name = str(compute.counter)
-            compute.counter += 1
+            name = str(analyzer.counter)
+            analyzer.counter += 1
         self.name = name
 
-class density(compute):
-    """Density profile compute"""
+class density(analyzer):
+    """Density profile analyzer"""
     
-    def __init__(self, trajectory, file_name='density', nx=0, ny=0, nz=0, name=None, types=[], weight=True):
-        compute.__init__(self, trajectory, file_name, name)
+    def __init__(self, traj, file_name='density', nx=0, ny=0, nz=0, name=None, types=[], weight=True):
+        analyzer.__init__(self, traj, file_name, name)
         self.bins = libmdalyzer.Vector3uint(nx,ny,nz)
         
         self.cpp = libmdalyzer.DensityProfile(self.trajectory.cpp, self.file_name, self.bins)
@@ -24,18 +24,10 @@ class density(compute):
         self.types = []
         self.weight = True
         
-        
         if not isinstance(types, list):
             types = [types]
         self.add_type(types)
         self.mass_weight(weight)
-    
-    def construct(self, traj):
-        """Construct the C++ object with the Trajectory"""
-        self.cpp = libmdalyzer.DensityProfile(traj, self.file_name, self.bins)
-        for t in self.types:
-            self.cpp.addType(t)
-        self.cpp.useMassWeighting(self.weight)
     
     def add_type(self, types):
         """Add types to calculate"""

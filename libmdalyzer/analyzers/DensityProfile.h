@@ -2,23 +2,23 @@
  *  \author Michael P. Howard
  *  \brief Compute for the average density profile
  */
-#ifndef MDALYZER_COMPUTES_DENSITYPROFILE_H_
-#define MDALYZER_COMPUTES_DENSITYPROFILE_H_
+#ifndef MDALYZER_ANALYZERS_DENSITYPROFILE_H_
+#define MDALYZER_ANALYZERS_DENSITYPROFILE_H_
 
 #include <string>
 #include <vector>
 #include <fstream>
-#include "Compute.h"
+#include "Analyzer.h"
 #include "VectorMath.h"
 
 /*!
  *
  * \ingroup computes
  */
-class DensityProfile : public Compute
+class DensityProfile : public Analyzer
     {
     public:
-        DensityProfile(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const Vector3<unsigned int>& bins);
+        DensityProfile(boost::shared_ptr<Trajectory> traj, const std::string& file_name,const Vector3<unsigned int>& bins);
         virtual ~DensityProfile() {};
         
         virtual void evaluate();
@@ -43,4 +43,4 @@ class DensityProfile : public Compute
     };
 
 void export_DensityProfile();
-#endif // MDALYZER_COMPUTES_DENSITYPROFILE_H_
+#endif // MDALYZER_ANALYZERS_DENSITYPROFILE_H_

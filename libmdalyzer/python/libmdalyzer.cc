@@ -4,13 +4,13 @@
 
 #include "Trajectory.h"
 #include "DCDTrajectory.h"
+#include "HOOMDXMLTrajectory.h"
 
 #include "Frame.h"
-#include "HOOMDXMLFrame.h"
 
-#include "Compute.h"
+#include "Analyzer.h"
 #include "DensityProfile.h"
-#include "MeanSquaredDisplacement.h"
+// #include "MeanSquaredDisplacement.h"
 
 #include "VectorMath.h"
 
@@ -33,13 +33,14 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     // trajectories
     export_Trajectory();
     export_DCDTrajectory();
+    export_HOOMDXMLTrajectory();
     
     // frames
     export_Frame();
-    export_HOOMDXMLFrame();
+//     export_HOOMDXMLFrame();
     
     // computes
-    export_Compute();
+    export_Analyzer();
     export_DensityProfile();
-    export_MeanSquaredDisplacement();
+//     export_MeanSquaredDisplacement();
     }

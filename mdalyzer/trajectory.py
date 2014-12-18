@@ -33,16 +33,16 @@ class dcd(trajectory):
         self.dcd_file = dcd_file
         self.i_file = i_file
         self.i_type = i_type
-        self.i_file_ptr = trajectory()
+        self.i_file_ptr = None
         if (self.i_type != None):
-            if ( self.traj_types.has_key(self.i_type) ):
+            if ( self.i_type in self.traj_types ):
                 # loop over the avilable formats
                 for t_type in self.traj_types:
                     if ( t_type.lower() == self.i_type.lower() ):
                         # create pointer to that trajectory
-                        self.i_file_ptr.cpp = self.traj_types[t_type]
+                        self.i_file_ptr = self.traj_types[t_type]
                         # add the file frame to that pointer
-                        self.i_file_ptr.cpp.addFile(i_file)
+                        self.i_file_ptr.addFile(i_file)
 
             # if type is incompatible   
             else:
@@ -56,9 +56,9 @@ class dcd(trajectory):
                     for t_type in self.traj_types:
                         if ( t_type.lower() == self.i_type.lower() ):
                             # create pointer to that trajectory
-                            self.i_file_ptr.cpp = self.traj_types[t_type]
+                            self.i_file_ptr = self.traj_types[t_type]
                             # add the file frame to that pointer
-                            self.i_file_ptr.cpp.addFile(i_file)
+                            self.i_file_ptr.addFile(i_file)
 
                 # if type is incompatible   
                 else:

@@ -16,7 +16,7 @@ TARGET := libmdalyzer
 PYTHON_INCLUDE := -I$(PYTHON_PATH)include/python$(PYTHON_VERSION)
 BOOST_LIB := $(BOOST_PATH)lib/
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
-LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
+LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lxdrfile -lboost_python -lpython$(PYTHON_VERSION)
 
 MODULES := analyzers extern data_structures python trajectories utils
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
@@ -24,7 +24,7 @@ BUILD_DIR := $(addprefix $(BUILD_PATH)/,$(MODULES))
 
 SRC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
 OBJ := $(patsubst $(TARGET)/%.cc,build/%.o,$(SRC))
-INCLUDES := $(addprefix -I,$(SRC_DIR)) $(PYTHON_INCLUDE)
+INCLUDES := $(addprefix -I,$(SRC_DIR)) -L$(TARGET)/extern/xdrfile -I$(TARGET)/extern/xdrfile $(PYTHON_INCLUDE)
 
 vpath %.cc $(SRC_DIR)
 

@@ -23,3 +23,16 @@ class hoomd(trajectory):
         for file in files:            
             self.cpp.addFile(file)
             
+class dcd(trajectory):
+    """DCD trajectory object"""
+    def __init__(self):
+        self.cpp = libmdalyzer.DCDTrajectory()
+        
+    def add(self, files):
+        """Add frames by file name"""
+        if not isinstance(files, list):
+            files = [files]
+            
+        for file in files:            
+            self.cpp.addFile(file)
+            

@@ -126,6 +126,30 @@ boost::shared_ptr<Frame> GROTrajectory::readFromFile(std::ifstream& file)
             }
         }
     
+    // read box information
+    getline(file, line)
+    iss_line.str(line);
+    
+    Vector3<double> length(0.,0.,0.);
+    Vector3<double> tilt(0.,0.,0.);
+    double dummyread_double;
+    
+    iss_line >> length.x >> length.y >> length.z;
+    
+    // if tilt factors are present, read them as well
+    if ( iss_line >> dummyread_double )
+        {
+            iss_line >> dummyread_double >> tilt.x >> dummyread_double >> tilt.y >> tilt.z;
+        }
+    else
+        {
+            tilt.x = 0.;
+            tilt.y = 0.;
+            tilt.z = 0.;
+        }
+    
+    box = TriclinicBox(length, tilt);
+    
         
     /* assign the information to the cur_frame pointer
      * - check if box and time step information is present

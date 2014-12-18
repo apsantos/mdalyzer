@@ -22,13 +22,16 @@
 class DCDTrajectory : public Trajectory
     {
     public:
-        DCDTrajectory(const std::string& fileName);
+        DCDTrajectory(boost::shared_ptr<Trajectory> initial_traj, const std::string& fileName);
         virtual ~DCDTrajectory() {};
         virtual void read();
         void readHeader(FILE* fileptr);
         void readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& positions);
 
     private:
+        boost::shared_ptr<Trajectory> m_initial_traj; //!< initial trajectory with particle type and pos
+        const std::string m_file;       //!< file name
+
         /// Variables used to call C ReadDCD.cc functions
         int m_n_dcdparticles_c;         //!< num of particles in the dcd file
         int m_n_frames_c;               //!< num of frames in dcd file
@@ -41,10 +44,10 @@ class DCDTrajectory : public Trajectory
         double m_time_step;             //!< timestep in the dcd
         unsigned int m_n_dcdparticles;   
         unsigned int m_n_frames;
-        const std::string m_file;       //!< file name
         
     };
 
+//! Python export for DCDTrajectory
 void export_DCDTrajectory();
 
 #endif // MDALYZER_TRAJECTORY_DCDTRAJECTORY_H_

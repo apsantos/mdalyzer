@@ -3,8 +3,8 @@
  *  \brief Reads DCD files
  *  \todo check that there is an initial frame
  *  The user must be aware of whether the particle positions in the DCD file
- *  are wrapped or unwrapped around the simulation box.  It is important crucial for the
- *  analyzers.
+ *  are wrapped or unwrapped around the simulation box.  It is correctness of the
+ *  analyzers depends on this detail.
  */
 #include "DCDTrajectory.h"
 
@@ -14,8 +14,8 @@
 
 /*! \param file Path to DCD file to read
  */
-DCDTrajectory::DCDTrajectory(const std::string& fileName)
-    : m_file(fileName)
+DCDTrajectory::DCDTrajectory( boost::shared_ptr<Trajectory> initial_traj, const std::string& fileName)
+    : m_initial_traj(initial_traj), m_file(fileName)
     {
     }
 
@@ -121,7 +121,6 @@ void DCDTrajectory::read()
         {
         throw std::runtime_error("ERROR: cannot find DCD file " +  m_file);
         }
-    
 
     // check that there is an initial frame 
 
@@ -136,7 +135,6 @@ void DCDTrajectory::read()
         std::vector< Vector3<double> > pos;
         readTimeStep(fileptr, pos);
         }
-    m_has_positions = true;
 
     // close DCD file
     close_dcd_read(fileptr, m_n_fixed_c, m_freeparticles_c);
@@ -149,5 +147,5 @@ void export_DCDTrajectory()
     {
     using namespace boost::python;
     class_<DCDTrajectory, boost::shared_ptr<DCDTrajectory>, bases<Trajectory>, boost::noncopyable >
-    ("DCDTrajectory", init< const std::string& >());
+    ("DCDTrajectory", init< boost::shared_ptr<Trajectory>, const std::string& >());
     }

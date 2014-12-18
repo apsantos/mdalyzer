@@ -114,20 +114,14 @@ boost::shared_ptr<Frame> XYZTrajectory::readFromFile(std::ifstream& file)
     
     
         
-    /* assign the information to the cur_frame pointer
-     * - check if box and time step information is present
-     */
+    // assign the information to the cur_frame pointer
     
-//    if ( !has_time_step )
-//        throw std::runtime_error("GROTrajectory: frames must have time set");
-//    else if ( !has_box )
-//        throw std::runtime_error("GROTrajectory: frame requires a box");
         
     // set cur_frame with n_particles and save information
     cur_frame = boost::shared_ptr<Frame>( new Frame(n_particles) );
     cur_frame->setPositions(positions);
-//    cur_frame->setTime(time_step);
-//    cur_frame->setBox(box);
+
+	return cur_frame;
 	}
 
 void export_XYZTrajectory()

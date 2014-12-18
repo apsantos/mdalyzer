@@ -24,7 +24,7 @@ BUILD_DIR := $(addprefix $(BUILD_PATH)/,$(MODULES))
 
 SRC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
 OBJ := $(patsubst $(TARGET)/%.cc,build/%.o,$(SRC))
-INCLUDES := $(addprefix -I,$(SRC_DIR)) -L$(TARGET)/extern/xdrfile -I$(TARGET)/extern/xdrfile $(PYTHON_INCLUDE)
+INCLUDES := $(addprefix -I,$(SRC_DIR)) $(PYTHON_INCLUDE)
 
 vpath %.cc $(SRC_DIR)
 

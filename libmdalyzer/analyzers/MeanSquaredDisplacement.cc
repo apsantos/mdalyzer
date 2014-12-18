@@ -1,3 +1,10 @@
+/*!
+ * \file MeanSquaredDisplacement.cc
+ * \author Andrew P. Santos
+ * \brief Mean Squared Displacement of Particles Analyzer
+ * \todo test the functions
+ * \ingroup Analyzer
+ */
 #include "MeanSquaredDisplacement.h"
 #include "Trajectory.h"
 #include "Frame.h"
@@ -14,7 +21,9 @@ MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> t
     m_type_names.reserve(m_traj->getNumTypes());
     }
 
-
+/*!
+ * \param name Particle type string 
+ */    
 void MeanSquaredDisplacement::addType(const std::string& name)
     {
     std::vector<std::string>::iterator name_it = std::find(m_type_names.begin(), m_type_names.end(), name);
@@ -23,6 +32,10 @@ void MeanSquaredDisplacement::addType(const std::string& name)
         m_type_names.push_back(name);
         }
     }
+
+/*!
+ * \param name Particle type string 
+ */    
 void MeanSquaredDisplacement::deleteType(const std::string& name)
     {
     std::vector<std::string>::iterator name_it = std::find(m_type_names.begin(), m_type_names.end(), name);
@@ -36,6 +49,11 @@ void MeanSquaredDisplacement::deleteType(const std::string& name)
         }
     }
 
+/*!
+ * Uses time origins to calculate the mean squared disp. of particles of like types
+ * using user-defined time origins.  Algorithm is based on Frenkel and Smit's 
+ * "Understanding Molecular Simulation". 
+ */    
 void MeanSquaredDisplacement::evaluate()
     {
 
@@ -113,6 +131,11 @@ void MeanSquaredDisplacement::evaluate()
     write(msd, ntime);
     }
 
+/*!
+ * \breif write out the total and directional MSD for each particle type
+ * \param msd Vector3 struct of 2D vector (particle type, time)
+ * \param ntime Histogram of the instances a time bin was visited in the MSD evaluation
+ */    
 void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<float> > >& msd, const std::vector<unsigned int>& ntime)
     {
     // read the frames and make sure there is time data

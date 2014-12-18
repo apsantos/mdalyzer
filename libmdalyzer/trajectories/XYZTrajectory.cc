@@ -70,7 +70,7 @@ boost::shared_ptr<Frame> XYZTrajectory::readFromFile(std::ifstream& file)
     std::string dummy_str;
     std::string name_i;
     
-    double time_step = 0.0;         // time step for this frame
+    
     TriclinicBox box;               // box information
     Vector3<double> pos_i;          // position
     std::vector<Vector3<double> > positions;
@@ -80,9 +80,12 @@ boost::shared_ptr<Frame> XYZTrajectory::readFromFile(std::ifstream& file)
     std::vector<std::string> names; // types of atoms
     
     // checkers
-    bool has_box = false;
-    bool has_time_step = false;
-    bool has_velocity = false;
+    bool has_box;
+	has_box = false;
+    bool has_time_step;
+	has_time_step = false;
+    bool has_velocity;
+	has_velocity = false;
     
     // the first line contains number of atoms
     getline(file, line);

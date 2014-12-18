@@ -15,7 +15,7 @@
 #define PI 3.14159265
 
 /*!
- * Loops over all attached files and calls readFromFile(const std::string& f) on them.
+ * Loops over all attached files and calls readFromFile on them.
  * Each file may contain multiple frames inside
  */
 void PDBTrajectory::read()
@@ -71,12 +71,14 @@ boost::shared_ptr<Frame> PDBTrajectory::readFromFile(std::ifstream& file)
     
     std::string line, first_word;   // string for reading line and first-word
     std::string dummy_str;
+    std::string name_i;
     
     double time_step = 0.0;         // time step for this frame
     TriclinicBox box;               // box information
     Vector3<double> pos_i;
     std::vector<Vector3<double> > positions;
     unsigned int n_particles = 0;   // number of particles
+    std::vector<std::string> names; // types of atoms
     
     // checkers
     bool has_box = false;
@@ -148,12 +150,14 @@ boost::shared_ptr<Frame> PDBTrajectory::readFromFile(std::ifstream& file)
         else if ( first_word.compare("ATOM") == 0 )
             {
             // read until the coordinates
-            for (int ds=0; ds<5; ++ds)
+            iss_line >> dummy_str >> name_i;
+            for (int ds=0; ds<3; ++ds)
                 iss_line >> dummy_str;
             
             iss_line >> pos_i.x >> pos_i.y >> pos_i.z;
             
             positions.push_back(pos_i);
+            names.push_back(name_i);
             ++n_particles;
             }
         }
@@ -171,6 +175,7 @@ boost::shared_ptr<Frame> PDBTrajectory::readFromFile(std::ifstream& file)
     // set cur_frame with n_particles and save information
     cur_frame = boost::shared_ptr<Frame>( new Frame(n_particles) );
     cur_frame->setPositions(positions);
+    cur_frame->setNames(names);
     cur_frame->setTime(time_step);
     cur_frame->setBox(box);
     

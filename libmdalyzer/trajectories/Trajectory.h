@@ -143,6 +143,11 @@ class Trajectory : boost::noncopyable
             {
             return m_type_map;
             }
+        /*! \return reference to vector of particle names for Trajectory */
+        const std::vector<std::string>& getNames() const
+            {
+            return m_names;
+            }
         /*! \return reference to vector of particle types for Trajectory */
         const std::vector<unsigned int>& getTypes() const
             {
@@ -157,6 +162,42 @@ class Trajectory : boost::noncopyable
         const std::vector<double>& getDiameters() const
             {
             return m_diameters;
+            }
+        
+        /* Setters */
+        //! set the Trajectory box
+        /*! \param box the box to set */
+        void setBox(const TriclinicBox& box)
+            {
+            m_box = box;
+            m_loc_box = OWN;
+            }
+            
+        //! set the Trajectory particle names
+        /*! 
+         * \param names the vector of particle names 
+         * \note names will be mapped to types by parse()
+         */
+        void setNames(const std::vector<std::string>& names)
+            {
+            m_names = names;
+            m_loc_names = OWN;
+            }
+        
+        //! set the Trajectory particle diameters
+        /*! \param diameters the vector of particle diameters */
+        void setDiameters(const std::vector<double>& diameters)
+            {
+            m_diameters = diameters;
+            m_loc_diameters = OWN;
+            }
+        
+        //! set the Trajectory particle masses
+        /*! \param masses the vector of particle masses */
+        void setMasses(const std::vector<double>& masses)
+            {
+            m_masses = masses;
+            m_loc_masses = OWN;
             }
         
     protected:

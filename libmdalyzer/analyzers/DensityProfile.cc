@@ -3,6 +3,7 @@
 #include "Frame.h"
 #include "TriclinicBox.h"
 
+#include <cmath>
 #include <fstream>
 #include <algorithm>
 
@@ -142,17 +143,17 @@ void DensityProfile::evaluate()
             Vector3<double> cur_pos = pos[i];
             if (m_bins.x > 0)
                 {
-                cur_pos.x -= box_len.x*round(cur_pos.x/box_len.x);
+                cur_pos.x -= box_len.x*floor(cur_pos.x/box_len.x);
                 density.x[type_idx_i][(unsigned int)(cur_pos.x/dr.x)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             if (m_bins.y > 0)
                 {
-                cur_pos.y -= box_len.y*round(cur_pos.y/box_len.y);
+                cur_pos.y -= box_len.y*floor(cur_pos.y/box_len.y);
                 density.y[type_idx_i][(unsigned int)(cur_pos.y/dr.y)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             if (m_bins.z > 0)
                 {
-                cur_pos.z -= box_len.z*round(cur_pos.z/box_len.z);
+                cur_pos.z -= box_len.z*floor(cur_pos.z/box_len.z);
                 density.z[type_idx_i][(unsigned int)(cur_pos.z/dr.z)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             }

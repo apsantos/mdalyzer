@@ -25,8 +25,9 @@ class DCDTrajectory : public Trajectory
         DCDTrajectory(boost::shared_ptr<Trajectory> initial_traj, const std::string& fileName);
         virtual ~DCDTrajectory() {};
         virtual void read();
+        void readFromFile();
         void readHeader(FILE* fileptr);
-        void readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& positions);
+        boost::shared_ptr<Frame> readTimeStep(FILE* fileptr);
 
     private:
         boost::shared_ptr<Trajectory> m_initial_traj; //!< initial trajectory with particle type and pos
@@ -40,10 +41,12 @@ class DCDTrajectory : public Trajectory
         int m_n_fixed_c;                //!< num of fixed particles (i.e. zeolite)
         int m_charmm_flags_c;           //!< flags for what information is available
         int m_first_dcdread;            //!< is the dcd file opened?
+        int m_frame_start_c;            //!< starting frame for reading
         
         double m_time_step;             //!< timestep in the dcd
         unsigned int m_n_dcdparticles;   
         unsigned int m_n_frames;
+        unsigned int m_frame_start;            //!< starting frame for reading
         
     };
 

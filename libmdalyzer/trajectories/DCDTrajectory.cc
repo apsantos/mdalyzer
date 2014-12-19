@@ -28,15 +28,15 @@ void DCDTrajectory::readHeader(FILE* fileptr)
     {
         
     int errcode;
-    int frame_start_c;            //!< starting frame for reading
     int frame_skip_c;             //!< frame read interval
 
-    errcode = read_dcdheader(fileptr, &m_n_dcdparticles_c, &m_n_frames_c, &frame_start_c,
+    errcode = read_dcdheader(fileptr, &m_n_dcdparticles_c, &m_n_frames_c, &m_frame_start_c,
                             &frame_skip_c, &m_time_step, &m_n_fixed_c, &m_freeparticles_c,
                             &m_reverse_endian_c, &m_charmm_flags_c);
 
     m_n_dcdparticles = (unsigned int)m_n_dcdparticles_c;
     m_n_frames = (unsigned int)m_n_frames_c;
+    m_frame_start = (unsigned int)m_frame_start_c;
 
     if (errcode < 0 || m_n_dcdparticles <= 0) 
         {
@@ -62,10 +62,11 @@ void DCDTrajectory::readHeader(FILE* fileptr)
 /*! Routine to read a time step from the DCD file, check errors and interface the
  *  external library ReadDCD.cc to mdalyzer 
  *  \param fileptr FILE type pointer to the opened dcd file
- *  \param positions Vector of Vector3 struct of positions of particles
+ *  \returns Frame pointer with positions and types
  */
-void DCDTrajectory::readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& positions)
+boost::shared_ptr<Frame> DCDTrajectory::readTimeStep(FILE* fileptr)
     {
+    boost::shared_ptr<Frame> cur_frame; //default initialization is null ptr
     // read in next step, if available
     int errcode;
     std::vector<float> X(m_n_dcdparticles, 0.);
@@ -98,19 +99,36 @@ void DCDTrajectory::readTimeStep(FILE* fileptr, std::vector< Vector3<double> >& 
     // convert the c arrays to our API form
     for (unsigned int ipart = 0; ipart < m_n_dcdparticles; ++ipart)
         {
-            Vector3<double> pos_v3; 
-            pos_v3.x = X[ipart];
-            pos_v3.y = Y[ipart];
-            pos_v3.z = Z[ipart];
-
-            positions.push_back(pos_v3);
+            Vector3<double> pos; 
+            pos.x = X[ipart];
+            pos.y = Y[ipart];
+            pos.z = Z[ipart];
+            cur_frame->setPosition( ipart, pos );
         }
+    cur_frame->setNames( m_frames[0]->getNames() );
+    cur_frame->setTypes( m_frames[0]->getTypes() );
+    cur_frame->setMasses( m_frames[0]->getMasses() );
+    return cur_frame;
     }
 
 /*! Main routine to parse out the necessary information from file
  */
-//void DCDTrajectory::readFromFile()
 void DCDTrajectory::read()
+    {
+    // read the initial frame
+    m_must_read_from_file = true;
+    m_initial_traj->analyze();
+    m_frames.push_back( m_initial_traj->getFrame(0) );
+    // set information to the dcd trajectory
+    this->setNames( m_initial_traj->getNames() );
+    this->setDiameters( m_initial_traj->getDiameters() );
+    this->setMasses( m_initial_traj->getMasses() );
+    // read the dcd 
+    readFromFile();
+    m_must_read_from_file = false;
+    }
+
+void DCDTrajectory::readFromFile()
     {
 
     // open the file
@@ -127,19 +145,28 @@ void DCDTrajectory::read()
     // read the DCD header
     readHeader(fileptr);
 
+    unsigned int start_time = 0;
+    if ( m_frames[0]->hasTime() )
+        {
+        start_time = m_frames[0]->getTime();
+        }
+    else
+        {
+        start_time = m_frame_start;
+        }
+
     // check that the number of paticles in the DCD match with the input file
 
-    for (unsigned int frame_idx = 0; frame_idx < m_n_frames; ++frame_idx)
+    for (unsigned int frame_idx = m_frame_start; frame_idx < m_n_frames; ++frame_idx)
         {
-        boost::shared_ptr<Frame> cur_frame; //default initialization is null ptr
-        std::vector< Vector3<double> > pos;
-        readTimeStep(fileptr, pos);
+        boost::shared_ptr<Frame> cur_frame = readTimeStep(fileptr);
+        cur_frame->setTime( (m_time_step * frame_idx) + start_time );
+        m_frames.push_back(readTimeStep(fileptr));
         }
 
     // close DCD file
     close_dcd_read(fileptr, m_n_fixed_c, m_freeparticles_c);
 
-    m_must_read_from_file = false;
     }
 
 //! Python export for DCDTrajectory

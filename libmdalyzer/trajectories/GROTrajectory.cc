@@ -127,7 +127,7 @@ boost::shared_ptr<Frame> GROTrajectory::readFromFile(std::ifstream& file)
         }
     
     // read box information
-    getline(file, line)
+    getline(file, line);
     iss_line.str(line);
     
     Vector3<double> length(0.,0.,0.);

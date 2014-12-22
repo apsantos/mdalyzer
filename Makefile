@@ -1,7 +1,8 @@
 #####
 # user configurable options
 #####
-CC := g++
+CC := gcc
+CXX := g++
 INSTALL_PATH := bin
 BUILD_PATH := build
 PYTHON_VERSION := 2.7
@@ -13,31 +14,36 @@ BOOST_PATH := /usr/global/boost/1_55_0/
 
 
 TARGET := libmdalyzer
-PYTHON_INCLUDE := -I$(PYTHON_PATH)include/python$(PYTHON_VERSION)
-BOOST_LIB := $(BOOST_PATH)lib/
-CC_FLAGS := -fPIC -Wall -Wextra -pedantic
-LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lxdrfile -lboost_python -lpython$(PYTHON_VERSION)
+PYTHON_INCLUDE := -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION)
+BOOST_LIB := $(BOOST_PATH)/lib/
+CXXFLAGS := -fPIC -Wall -Wextra -pedantic
+CFLAGS := $(CXXFLAGS) --std=c99
+LDFLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
 
 MODULES := analyzers extern data_structures python trajectories utils
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
 BUILD_DIR := $(addprefix $(BUILD_PATH)/,$(MODULES))
 
-SRC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
-OBJ := $(patsubst $(TARGET)/%.cc,build/%.o,$(SRC))
+SRC_CXX := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
+SRC_CC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.c))
+OBJ := $(patsubst $(TARGET)/%.cc,$(BUILD_PATH)/%.o,$(SRC_CXX)) $(patsubst $(TARGET)/%.c, $(BUILD_PATH)/%.o,$(SRC_CC))
 INCLUDES := $(addprefix -I,$(SRC_DIR)) $(PYTHON_INCLUDE)
 
 vpath %.cc $(SRC_DIR)
+vpath %.c $(SRC_DIR)
 
 define make-goal
 $1/%.o: %.cc
-	$(CC) $(INCLUDES) $(CC_FLAGS) -c $$< -o $$@
+	$(CXX) $(INCLUDES) $(CXXFLAGS) -c $$< -o $$@
+$1/%.o: %.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c $$< -o $$@
 endef
 
 .PHONY: all checkdirs clean install
 
 all: checkdirs $(BUILD_PATH)/$(TARGET).so
-build/$(TARGET).so: $(OBJ)
-	$(CC) $(LD_FLAGS) $^ -o $@
+$(BUILD_PATH)/$(TARGET).so: $(OBJ)
+	$(CXX) $(LDFLAGS) $^ -o $@
 checkdirs: $(BUILD_DIR)
 
 $(BUILD_DIR):

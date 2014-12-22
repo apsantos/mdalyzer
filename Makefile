@@ -16,7 +16,7 @@ TARGET := libmdalyzer
 PYTHON_INCLUDE := -I$(PYTHON_PATH)include/python$(PYTHON_VERSION)
 BOOST_LIB := $(BOOST_PATH)lib/
 CC_FLAGS := -fPIC -Wall -Wextra -pedantic
-LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
+LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lxdrfile -lboost_python -lpython$(PYTHON_VERSION)
 
 MODULES := analyzers extern data_structures python trajectories utils
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))

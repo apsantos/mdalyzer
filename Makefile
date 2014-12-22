@@ -59,3 +59,4 @@ install:
 	@cp -r mdalyzer $(INSTALL_PATH)/
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
+

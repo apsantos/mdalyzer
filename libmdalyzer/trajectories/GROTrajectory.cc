@@ -1,41 +1,45 @@
 /*! 
  * \file GROTrajectory.cc
  * \author Sang Beom Kim
- * \date 17 December 2014
- * \brief Reads GRO files
+ * \author Michael P. Howard
+ * \date 29 December 2014
+ * \brief Implementation of the Trajectory for GRO file format
  */
 #include "GROTrajectory.h"
 
+#include <boost/algorithm/string.hpp>
 #include <boost/python.hpp>
 #include <fstream>
 #include <sstream>
-#include <iostream>
-#include <math.h>
 
-#define PI 3.14159265
+GROTrajectory::GROTrajectory()
+    : m_n_pos_chars(8), m_n_vel_chars(9)
+    {
+    }
 
 /*!
- * Loops over all attached files and calls readFromFile on them.
+ * \param precision number of decimal places in the positions
+ */
+GROTrajectory::GROTrajectory(unsigned int precision)
+    : m_n_pos_chars(precision+5), m_n_vel_chars(precision+6)
+    {
+    }
+
+/*!
+ * Opens and loops over all attached files and calls readFromFile on them.
  * Each file may contain multiple frames inside
  */
 void GROTrajectory::read()
     {
     for (unsigned int cur_f = 0; cur_f < m_files.size(); ++cur_f)
         {
-        
         // open GRO file
         std::ifstream file(m_files[cur_f].c_str());
         if (!file.good())
-        {
-        throw std::runtime_error("GROTrajectory: cannot find GRO file " + m_files[cur_f]);
-        }
-        
-        // read frames until the end
-        while ( !file.eof() )
             {
-            m_frames.push_back(readFromFile(file));
+            throw std::runtime_error("GROTrajectory: cannot find GRO file " + m_files[cur_f]);
             }
-        
+        readFromFile(file);
         file.close();
         }
     m_must_read_from_file = false;
@@ -57,124 +61,229 @@ void GROTrajectory::addFile(const std::string& f)
     }
 
 /*! 
- * \param f file to parse
- * \returns shared pointer to the newly read Frame
+ * \param file string stream of current file to parse
  *
- * A Frame is required to have a timestep and a box set. If either of these does not exist, an exception is thrown.
- * The simulation box may be triclinic, so we save the tilt factors. If the image properties are supplied, we unwrap the
- * particle positions.
+ * All file lines are looped over, ignoring white space, until a comment line is found that *must* contain
+ * the timestep (t= <time>).
  */
-boost::shared_ptr<Frame> GROTrajectory::readFromFile(std::ifstream& file)
+void GROTrajectory::readFromFile(std::ifstream& file)
     {
-        
-    boost::shared_ptr<Frame> cur_frame; //default initialization is null ptr
+    // string container for parsing line by line
+    std::string line;
     
-    std::string line, first_word;   // string for reading line and first-word
-    std::string dummy_str;
-    std::string name_i;
-    
-    double time_step = 0.0;         // time step for this frame
-    TriclinicBox box;               // box information
-    Vector3<double> pos_i;          // position
-    std::vector<Vector3<double> > positions;
-    Vector3<double> vel_i;          // velocity
-    std::vector< Vector3<double> > velocities;
-    unsigned int n_particles = 0;   // number of particles
-    std::vector<std::string> names; // types of atoms
-    
-    // checkers
-    bool has_box = false;
-    bool has_time_step = false;
-    bool has_velocity = false;
-    
-    // the first line contains timestep information
-    getline(file, line);
-    std::istringstream iss_line(line);
-    
-    while ( first_word.compare("t=") != 0 )
-        iss_line >> first_word;
-                
-    iss_line >> time_step;
-            
-    has_time_step = true;
-    
-    
-    // second line contains number of atoms
-    getline(file, line);
-    iss_line.str(line);
-    iss_line >> n_particles;
-    
-    // read the types and coordinates
-    for (unsigned int i=0; i<n_particles; ++i)
+    while (getline(file, line))
         {
-        
-        getline(file, line);
-        iss_line.str(line);
-        
-        iss_line >> dummy_str >> name_i >> dummy_str
-                 >> pos_i.x >> pos_i.y >> pos_i.z;
+        // skip over empty lines until we find a comment line
+        if (line.empty())
+            continue;
             
-        positions.push_back(pos_i);
-        names.push_back(name_i);
-            
-        // check if velocity information is also present
-        if ( iss_line >> vel_i.x )
+        std::istringstream line_parser;
+        
+        // extract time step from comment line
+        double time_step(0.0);
+        int found_time = line.find("t=");
+        if (found_time >= 0)
             {
-            iss_line >> vel_i.y >> vel_i.z;
-            velocities.push_back(vel_i);
-            has_velocity = true;
+            line_parser.str(line.substr(found_time+2));
+            line_parser.clear();
+            if (!(line_parser >> time_step))
+                {
+                throw std::runtime_error("GROTrajectory: time step must follow t=");
+                }
             }
-        }
-    
-    // read box information
-    getline(file, line);
-    iss_line.str(line);
-    
-    Vector3<double> length(0.,0.,0.);
-    Vector3<double> tilt(0.,0.,0.);
-    double dummyread_double;
-    
-    iss_line >> length.x >> length.y >> length.z;
-    
-    // if tilt factors are present, read them as well
-    if ( iss_line >> dummyread_double )
-        {
-            iss_line >> dummyread_double >> tilt.x >> dummyread_double >> tilt.y >> tilt.z;
-        }
-    else
-        {
-            tilt.x = 0.;
-            tilt.y = 0.;
-            tilt.z = 0.;
-        }
-    
-    box = TriclinicBox(length, tilt);
-    
+        else
+            {
+            throw std::runtime_error("GROTrajectory: time step is required in comment line");
+            }
+            
+        // extract the number of atoms and construct the frame
+        boost::shared_ptr<Frame> cur_frame;
+        if (getline(file,line))
+            {
+            line_parser.str(line);
+            line_parser.clear();
+            unsigned int n_particles(0);
+            if (line_parser >> n_particles)
+                {
+                cur_frame = boost::shared_ptr<Frame>( new Frame(n_particles) );
+                cur_frame->setTime(time_step);
+                }
+            else
+                {
+                throw std::runtime_error("GROTrajectory: number of particles must be set");
+                }
+            }
+        else
+            {
+            throw std::runtime_error("GROTrajectory: number of particles must be set");
+            }
+            
+        // loop on particles now
+        unsigned int cur_particle(0);
+        Vector3<double> pos_i, vel_i;
         
-    /* assign the information to the cur_frame pointer
-     * - check if box and time step information is present
-     */
-    
-    if ( !has_time_step )
-        throw std::runtime_error("GROTrajectory: frames must have time set");
-    else if ( !has_box )
-        throw std::runtime_error("GROTrajectory: frame requires a box");
+        while (cur_particle < cur_frame->getN() && getline(file,line))
+            {
+            if (line.length() < 20)
+                {
+                throw std::runtime_error("GROTrajectory: particle lines are at least 20 characters long to set top");
+                }
+                
+            // name is 5 char long and starts at position 10
+            std::string name = line.substr(10,5);
+            boost::algorithm::trim(name); // white space is not meaningful
+            
+            // particle id is 5 char long and starts at position 15
+            unsigned int particle_id = readSubstring<unsigned int>(line, line_parser, 15, 5,
+                                       "GROTrajectory: atom number not set for particle line " + cur_particle);     
+            --particle_id; // runs 1 to N, so must subtract one
+            
+            // set the name now that the particle id is known
+            if(name.length() > 0)
+                {
+                cur_frame->setName(cur_particle, name);
+                }
         
-    // set cur_frame with n_particles and save information
-    cur_frame = boost::shared_ptr<Frame>( new Frame(n_particles) );
-    cur_frame->setPositions(positions);
-    cur_frame->setTime(time_step);
-    cur_frame->setBox(box);
-    if ( has_velocity )
-        cur_frame->setVelocities(velocities);
+            // now we have to snag the positions and velocities one by one
+            unsigned int cur_read_pos = 20;
+            // x position
+            pos_i.x = readSubstring<double>(line,
+                                            line_parser,
+                                            cur_read_pos,
+                                            m_n_pos_chars,
+                                            "GROTrajectory: missing x position");
+            cur_read_pos += m_n_pos_chars;
+            
+            // y position
+            pos_i.y = readSubstring<double>(line,
+                                            line_parser,
+                                            cur_read_pos,
+                                            m_n_pos_chars,
+                                            "GROTrajectory: missing y position");
+            cur_read_pos += m_n_pos_chars;
+                
+            // z position
+            pos_i.z = readSubstring<double>(line,
+                                            line_parser,
+                                            cur_read_pos,
+                                            m_n_pos_chars,
+                                            "GROTrajectory: missing z position");
+            cur_read_pos += m_n_pos_chars;
+            
+            // x velocity
+            vel_i.x = readSubstring<double>(line,
+                                            line_parser,
+                                            cur_read_pos,
+                                            m_n_vel_chars,
+                                            "GROTrajectory: missing x velocity");
+            cur_read_pos += m_n_vel_chars;
+            
+            // y velocity
+            vel_i.y = readSubstring<double>(line,
+                                            line_parser,
+                                            cur_read_pos,
+                                            m_n_vel_chars,
+                                            "GROTrajectory: missing y velocity");
+            cur_read_pos += m_n_vel_chars;
+              
+            // z velocity          
+            vel_i.z = readSubstring<double>(line,
+                                            line_parser,
+                                            cur_read_pos,
+                                            m_n_vel_chars,
+                                            "GROTrajectory: missing z velocity");
+            cur_read_pos += m_n_vel_chars;
+            
+            // set the position and velocity of the particle
+            cur_frame->setPosition(particle_id, pos_i);
+            cur_frame->setVelocity(particle_id, vel_i);
+            
+            ++cur_particle;
+            }
+        if (cur_particle < cur_frame->getN())
+            {
+            throw std::runtime_error("GROTrajectory: number of particles read does not match specified number");
+            }
+        
+        // acquire the simulation box
+        // gro uses a funny ordering:
+        // v1(x) v2(y) v3(z) v1(y) v1(z) v2(x) v2(z) v3(x) v3(z)
+        // and always requires the first three be present
+        if (getline(file, line))
+            {
+            line_parser.str(line);
+            line_parser.clear();
+            
+            Vector3<double> v1,v2,v3;
+            line_parser >> v1.x >> v2.y >> v3.z;
+            
+            // nested check for the quantities, since we only need to check for more if they exist
+            if (line_parser >> v1.y)
+                {
+                if (line_parser >> v1.z)
+                    {
+                    if (line_parser >> v2.x)
+                        {
+                        if (line_parser >> v2.z)
+                            {
+                            if (line_parser >> v3.x)
+                                {
+                                if (line_parser >> v3.z)
+                                    {
+                                    // we have all the values now, stop
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            
+            // now construct the box using three arbitrarily oriented lattice vectors
+            TriclinicBox box(v1,v2,v3);
+            cur_frame->setBox(box);
+            }
+        else
+            {
+            throw std::runtime_error("GROTrajectory: box must be specified");
+            }
+        m_frames.push_back(cur_frame);
+        }
+    }
     
-    return cur_frame;
+/*!
+ * \param line current string line to extract from
+ * \param line_parser stringstream object to hold the string
+ * \param start position to begin reading from
+ * \param len length to read
+ * \param errmsg message to print out if substring is not in range or not readable
+ *
+ * \return the extracted value
+ */
+template <typename T>
+inline T GROTrajectory::readSubstring(const std::string& line,
+                                      std::istringstream& line_parser,
+                                      unsigned int start,
+                                      unsigned int len,
+                                      const std::string& errmsg)
+    {
+    T val(0.0);
+    if (start >= line.length())
+        {
+        throw std::runtime_error(errmsg);
+        }
+    line_parser.str(line.substr(start,len));
+    line_parser.clear();
+    if (!(line_parser >> val))
+        {
+        throw std::runtime_error(errmsg);
+        }
+    return val;
     }
 
 void export_GROTrajectory()
     {
     using namespace boost::python;
-    class_<GROTrajectory, boost::shared_ptr<GROTrajectory>, bases<Trajectory>, boost::noncopyable >
-    ("GROTrajectory", init< >())
+    class_<GROTrajectory, boost::shared_ptr<GROTrajectory>, bases<Trajectory>, boost::noncopyable >("GROTrajectory")
+    .def(init<unsigned int>())
     .def("addFile", &GROTrajectory::addFile);
     }

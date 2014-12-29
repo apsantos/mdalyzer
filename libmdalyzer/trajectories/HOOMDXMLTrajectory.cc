@@ -271,6 +271,6 @@ void export_HOOMDXMLTrajectory()
     {
     using namespace boost::python;
     class_<HOOMDXMLTrajectory, boost::shared_ptr<HOOMDXMLTrajectory>, bases<Trajectory>, boost::noncopyable >
-    ("HOOMDXMLTrajectory", init< >())
+    ("HOOMDXMLTrajectory")
     .def("addFile", &HOOMDXMLTrajectory::addFile);
     }

@@ -22,4 +22,20 @@ class hoomd(trajectory):
             
         for file in files:            
             self.cpp.addFile(file)
+
+class gro(trajectory):
+    """GRO file trajectory object"""
+    def __init__(self,files=None):
+        self.cpp = libmdalyzer.GROTrajectory()
+        
+        if files is not None:
+            self.add(files)
+    
+    def add(self, files):
+        """Add GRO files"""
+        if not isinstance(files, list):
+            files = [files]
+        
+        for file in files:
+            self.cpp.addFile(file)
             

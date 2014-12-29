@@ -25,8 +25,8 @@ class hoomd(trajectory):
 
 class gro(trajectory):
     """GRO file trajectory object"""
-    def __init__(self,files=None):
-        self.cpp = libmdalyzer.GROTrajectory()
+    def __init__(self,files=None,precision=3):
+        self.cpp = libmdalyzer.GROTrajectory(precision)
         
         if files is not None:
             self.add(files)

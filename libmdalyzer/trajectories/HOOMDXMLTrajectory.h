@@ -28,14 +28,10 @@ class HOOMDXMLTrajectory : public Trajectory
         //! default destructor
         virtual ~HOOMDXMLTrajectory() {};
         
-        //! attach a file to be parsed
-        void addFile(const std::string& f);
-        
         //! reads all attached files into Frame
         virtual void read();
     private:
         static float s_supported_hoomd_version;     //!< Flag for HOOMD support level
-        std::vector<std::string> m_files;           //!< List of files to parse
         
         //! internal method for reading a single HOOMD XML file into a Frame
         boost::shared_ptr<Frame> readFromFile(const std::string& f);

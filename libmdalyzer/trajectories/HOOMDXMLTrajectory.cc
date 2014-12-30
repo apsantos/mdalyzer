@@ -2,7 +2,7 @@
  * \file HOOMDXMLTrajectory.cc
  * \author Michael P. Howard
  * \date 16 December 2014
- * \brief Reads HOOMD XML files
+ * \brief Implementation of HOOMDXMLTrajectory reader
  */
 #include "HOOMDXMLTrajectory.h"
 
@@ -20,21 +20,6 @@ void HOOMDXMLTrajectory::read()
         m_frames.push_back(readFromFile(m_files[cur_f]));
         }
     m_must_read_from_file = false;
-    }
-
-/*!
- * \param f file name to attach
- *
- * Any time a new file is attached, the Trajectory must be re-read from file. This could be handled in a smart way
- * flushing the read file list so that only newly added files are read, and not everything. This should be considered
- * in read() in the future.
- *
- * \note error checking for duplicates is currently not enabled, but we will implement this soon.
- */
-void HOOMDXMLTrajectory::addFile(const std::string& f)
-    {
-    m_must_read_from_file = true;
-    m_files.push_back(f); // error check this later
     }
 
 /*! 
@@ -270,7 +255,6 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
 void export_HOOMDXMLTrajectory()
     {
     using namespace boost::python;
-    class_<HOOMDXMLTrajectory, boost::shared_ptr<HOOMDXMLTrajectory>, bases<Trajectory>, boost::noncopyable >
-    ("HOOMDXMLTrajectory")
-    .def("addFile", &HOOMDXMLTrajectory::addFile);
+    class_<HOOMDXMLTrajectory, boost::shared_ptr<HOOMDXMLTrajectory>, bases<Trajectory>, boost::noncopyable>
+    ("HOOMDXMLTrajectory");
     }

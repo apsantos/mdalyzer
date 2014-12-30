@@ -3,7 +3,7 @@
  * \author Sang Beom Kim
  * \author Michael P. Howard
  * \date 29 December 2014
- * \brief Implementation of the Trajectory for GRO file format
+ * \brief Implementation of GROTrajectory reader
  */
 #include "GROTrajectory.h"
 
@@ -45,21 +45,6 @@ void GROTrajectory::read()
     m_must_read_from_file = false;
     }
 
-/*!
- * \param f file name to attach
- *
- * Any time a new file is attached, the Trajectory must be re-read from file. This could be handled in a smart way
- * flushing the read file list so that only newly added files are read, and not everything. This should be considered
- * in read() in the future.
- *
- * \note error checking for duplicates is currently not enabled, but we will implement this soon.
- */
-void GROTrajectory::addFile(const std::string& f)
-    {
-    m_must_read_from_file = true;
-    m_files.push_back(f); // error check this later
-    }
-
 /*! 
  * \param file string stream of current file to parse
  *
@@ -82,7 +67,7 @@ void GROTrajectory::readFromFile(std::ifstream& file)
         // extract time step from comment line
         double time_step(0.0);
         int found_time = line.find("t=");
-        if (found_time >= 0)
+        if (found_time >= 0 && (found_time+2) < (int)line.length())
             {
             line_parser.str(line.substr(found_time+2));
             line_parser.clear();
@@ -283,7 +268,6 @@ inline T GROTrajectory::readSubstring(const std::string& line,
 void export_GROTrajectory()
     {
     using namespace boost::python;
-    class_<GROTrajectory, boost::shared_ptr<GROTrajectory>, bases<Trajectory>, boost::noncopyable >("GROTrajectory")
-    .def(init<unsigned int>())
-    .def("addFile", &GROTrajectory::addFile);
+    class_<GROTrajectory, boost::shared_ptr<GROTrajectory>, bases<Trajectory>, boost::noncopyable>("GROTrajectory")
+    .def(init<unsigned int>());
     }

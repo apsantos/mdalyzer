@@ -42,13 +42,9 @@ class GROTrajectory : public Trajectory
         //! default destructor
         virtual ~GROTrajectory() {};
         
-        //! attach a file to be parsed
-        void addFile(const std::string& f);
-        
         //! reads all attached files into Frames
         virtual void read();
     private:
-        std::vector<std::string> m_files;   //!< List of files to parse
         unsigned int m_n_pos_chars;         //!< number of chars in a position chunk
         unsigned int m_n_vel_chars;         //!< number of chars in a velocity chunk
         

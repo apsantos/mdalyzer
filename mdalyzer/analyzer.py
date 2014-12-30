@@ -24,14 +24,14 @@ class density(analyzer):
         self.types = []
         self.weight = True
         
-        if not isinstance(types, list):
+        if not isinstance(types, (list,tuple)):
             types = [types]
         self.add_type(types)
         self.mass_weight(weight)
     
     def add_type(self, types):
         """Add types to calculate"""
-        if not isinstance(types, list):
+        if not isinstance(types, (list,tuple)):
             types = [types]
             
         for t in types:
@@ -41,7 +41,7 @@ class density(analyzer):
     
     def delete_type(self, types):
         """Remove types to calculate"""
-        if not isinstance(types, list):
+        if not isinstance(types, (list,tuple)):
             types = [types]
             
         for t in types:

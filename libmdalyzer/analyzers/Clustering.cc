@@ -12,12 +12,10 @@
 Clustering::Clustering(boost::shared_ptr<Trajectory> traj, const std::string& file_name, double atom_dist)
     : Analyzer(traj), m_file_name(file_name), m_atom_dist_sq(atom_dist*atom_dist)
     {
-    std::cout<<"calling clustering"<<std::endl;
     }
 
 void Clustering::evaluate()
     {
-    std::cout<<"Clustering"<<std::endl;
     // read the frames and make sure there is a simulation box
     std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
     if (!m_traj->hasBox())

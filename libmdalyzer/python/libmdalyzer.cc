@@ -4,8 +4,15 @@
 
 #include "Trajectory.h"
 #include "HOOMDXMLTrajectory.h"
+#include "GROTrajectory.h"
+#include "PDBTrajectory.h"
+#include "XYZTrajectory.h"
+#include "TRRTrajectory.h"
+#include "XTCTrajectory.h"
+
 
 #include "Frame.h"
+#include "TriclinicBox.h"
 
 #include "Analyzer.h"
 #include "DensityProfile.h"
@@ -27,17 +34,21 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     .def_readwrite("x",&Vector3<double>::x)
     .def_readwrite("y",&Vector3<double>::y)
     .def_readwrite("z",&Vector3<double>::z);
-
     
     // trajectories
     export_Trajectory();
     export_HOOMDXMLTrajectory();
+    export_GROTrajectory();
+    export_PDBTrajectory();
+    export_XYZTrajectory();
+    export_TRRTrajectory();
+    export_XTCTrajectory();
     
-    // frames
+    // data structures
     export_Frame();
-//     export_HOOMDXMLFrame();
+    export_TriclinicBox();
     
-    // computes
+    // analyzers
     export_Analyzer();
     export_DensityProfile();
 //     export_MeanSquaredDisplacement();

@@ -1,18 +1,29 @@
 /*! 
  * \file PDBTrajectory.cc
  * \author Sang Beom Kim
- * \date 17 December 2014
- * \brief Reads PDB files
+ * \author Michael P. Howard
+ * \date 30 December 2014
+ * \brief Implementation of PDBTrajectory reader
  */
 #include "PDBTrajectory.h"
 
+#include <boost/algorithm/string.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/python.hpp>
 #include <fstream>
 #include <sstream>
-#include <iostream>
-#include <math.h>
+#include <cmath>
+#include <cstdio>
 
-#define PI 3.14159265
+PDBTrajectory::PDBTrajectory()
+    : m_pdb_timestep(1.0)
+    {
+    }
+
+PDBTrajectory::PDBTrajectory(double timestep)
+    : m_pdb_timestep(timestep)
+    {
+    }
 
 /*!
  * Loops over all attached files and calls readFromFile on them.
@@ -22,170 +33,158 @@ void PDBTrajectory::read()
     {
     for (unsigned int cur_f = 0; cur_f < m_files.size(); ++cur_f)
         {
-        
         // open PDB file
         std::ifstream file(m_files[cur_f].c_str());
         if (!file.good())
-        {
-        throw std::runtime_error("PDBTrajectory: cannot find PDB file " + m_files[cur_f]);
-        }
-        
-        // read frames until the end
-        while ( !file.eof() )
             {
-            m_frames.push_back(readFromFile(file));
+            throw std::runtime_error("PDBTrajectory: cannot find PDB file " + m_files[cur_f]);
             }
-        
+        readFromFile(file);
         file.close();
         }
     m_must_read_from_file = false;
     }
 
-/*!
- * \param f file name to attach
- *
- * Any time a new file is attached, the Trajectory must be re-read from file. This could be handled in a smart way
- * flushing the read file list so that only newly added files are read, and not everything. This should be considered
- * in read() in the future.
- *
- * \note error checking for duplicates is currently not enabled, but we will implement this soon.
- */
-void PDBTrajectory::addFile(const std::string& f)
-    {
-    m_must_read_from_file = true;
-    m_files.push_back(f); // error check this later
-    }
-
 /*! 
- * \param f file to parse
- * \returns shared pointer to the newly read Frame
- *
- * A Frame is required to have a timestep and a box set. If either of these does not exist, an exception is thrown.
- * The simulation box may be triclinic, so we save the tilt factors. If the image properties are supplied, we unwrap the
- * particle positions.
+ * \param file input file stream to parse
  */
-boost::shared_ptr<Frame> PDBTrajectory::readFromFile(std::ifstream& file)
+void PDBTrajectory::readFromFile(std::ifstream& file)
     {
-        
-    boost::shared_ptr<Frame> cur_frame; //default initialization is null ptr
+    // string containers for parsing line by line
+    std::string line;
+    std::istringstream line_parser; 
     
-    std::string line, first_word;   // string for reading line and first-word
-    std::string dummy_str;
-    std::string name_i;
+    // conversion factor to take angle degrees to radians
+    const double degrees_to_radians = boost::math::constants::pi<double>()/180.0;
     
-    double time_step = 0.0;         // time step for this frame
-    TriclinicBox box;               // box information
-    Vector3<double> pos_i;
-    std::vector<Vector3<double> > positions;
-    unsigned int n_particles = 0;   // number of particles
-    std::vector<std::string> names; // types of atoms
+    // containers for each Frame data
+    boost::shared_ptr<Frame> cur_frame;
+    double frame_time(0.0);
+    std::vector< Vector3<double> > positions;
+    std::vector<std::string> names;
     
-    // checkers
-    bool has_box = false;
-    bool has_time_step = false;
+    // a single pdb file contains at most one cryst1 record
+    bool found_box = false;
+    TriclinicBox box;
     
-    // read until the end of one frame
-    while ( true )
+    // flag for currently reading a model
+    bool reading_frame = false;
+    // track atoms as they are read to ensure ordering
+    int last_atom_id = 0;
+    
+    while (getline(file, line))
         {
-        // read a line
-        getline(file, line);
-        std::istringstream iss_line(line);
+        // skip over empty lines
+        if (line.empty())
+            continue;   
         
-        // check the first word
-        iss_line >> first_word;
+        // each PDB line begins with a 6 character tag which we use to identify it
+        std::string line_tag = line.substr(0,6);
         
-        // ENDMDL marks the end of a frame
-        if ( first_word.compare("ENDMDL") != 0 )
-            break;
-        
-        if ( first_word.compare("TITLE") == 0 )
+        // simulation box
+        if (!found_box && line_tag.compare("CRYST1") == 0)
             {
-            // find the time step
-            while ( first_word.compare("t=") != 0 )
-                iss_line >> first_word;
+            if (line.length() < 47)
+                {
+                throw std::runtime_error("PDBTrajectory: CRYST1 line is not long enough");
+                }
                 
-            iss_line >> time_step;
+            // lattice vectors
+            double a(0.0), b(0.0), c(0.0);
+            // lattice angles
+            double alpha(0.0), beta(0.0), gamma(0.0);
             
-            has_time_step = true;
-            }
-        
-        // box information
-        else if ( first_word.compare("CRYST1") == 0 )
-            {
+            // pdb formatting is a strict punch card, so can use sscanf with fixed widths
+            sscanf(line.c_str(), "%*6s%9lf%9lf%9lf%7lf%7lf%7lf", &a, &b, &c, &alpha, &beta, &gamma);
             
-            // read lattice constants
-        
-            // read a, b, c (in angstrom)
-            double t_a, t_b, t_c = 0.;
-            file >> t_a;
-            file >> t_b;
-            file >> t_c;
+            // extract the box lengths and tilts from the lattice constants
+            // http://lammps.sandia.gov/doc/Section_howto.html (triclinic box)
+            Vector3<double> length, tilt;
+            length.x = a;
+            tilt.x = b*cos(gamma*degrees_to_radians);
+            tilt.y = c*cos(beta*degrees_to_radians);
+            length.y = sqrt(b*b-tilt.x*tilt.x);
+            tilt.z = (b*c*cos(alpha*degrees_to_radians)-tilt.x*tilt.y)/length.y;
+            length.z = sqrt(c*c-tilt.y*tilt.y-tilt.z*tilt.z);
             
-            // read angles (alpha, beta, gamma), in degrees
-            double angle_alpha, angle_beta, angle_gamma = 0.;
-            file >> angle_alpha;
-            file >> angle_beta;
-            file >> angle_gamma;
-            
-            // construct the simulation box
-            Vector3<double> length(0.,0.,0.);
-            Vector3<double> tilt(0.,0.,0.);
-            
-            // compute box length and tilt factors
-            length.x = t_a;
-            tilt.x = t_b * cos(angle_gamma * PI / 180.0);
-            tilt.y = t_c * cos(angle_beta * PI / 180.0);
-            length.y = pow( (t_b*t_b - tilt.x*tilt.x), 0.5);
-            tilt.z = ( ( length.y * length.z * cos(angle_alpha * PI / 180.0) ) - \
-                        ( tilt.x * tilt.y ) ) / length.y;
-            length.z = pow( (t_c*t_c - tilt.y*tilt.y - tilt.z*tilt.z), 0.5);
-            
-            // assign box based on the length and tilt
             box = TriclinicBox(length,tilt);
-
-            has_box = true;
+            found_box = true;
             }
-            
-        // position
-        else if ( first_word.compare("ATOM") == 0 )
+        // particle data, both atom entries look the same
+        else if (reading_frame && (line_tag.compare("ATOM  ") == 0 || line_tag.compare("HETATM") == 0))
             {
-            // read until the coordinates
-            iss_line >> dummy_str >> name_i;
-            for (int ds=0; ds<3; ++ds)
-                iss_line >> dummy_str;
+            // make sure the line is long enough
+            if (line.length() < 46)
+                {
+                throw std::runtime_error("PDBTrajectory: ATOM line is not long enough");
+                }
             
-            iss_line >> pos_i.x >> pos_i.y >> pos_i.z;
+            // extract the atom data from scanf
+            int atom_id(0);
+            char atom_name[5];
+            Vector3<double> pos_i;
+            sscanf(line.c_str(), "%*6s%5d%4s%*15s%8lf%8lf%8lf", &atom_id, atom_name, &pos_i.x, &pos_i.y, &pos_i.z);
             
-            positions.push_back(pos_i);
-            names.push_back(name_i);
-            ++n_particles;
+            // ensure particle ordering
+            if (atom_id == (last_atom_id+1))
+                {            
+                // push back particle data
+                names.push_back( std::string(atom_name) );
+                positions.push_back(pos_i);
+                last_atom_id = atom_id;
+                }
+            else
+                {
+                throw std::runtime_error("PDBTrajectory: PDB atoms must be in numerical order starting from 1");
+                }
+            }
+        // model begins scanning
+        else if (!reading_frame && line_tag.compare("MODEL ") == 0)
+            {
+            reading_frame = true;
+            
+            // clear out old data
+            last_atom_id = 0;
+            names.clear();
+            positions.clear();
+            
+            // get the frame time step
+            line_parser.str(line);
+            line_parser.clear();
+            std::string dummy_str;
+            if (line_parser >> dummy_str >> frame_time)
+                {            
+                // scale the extracted timestep by the frame time skip
+                frame_time *= m_pdb_timestep;
+                }
+            else
+                {
+                throw std::runtime_error("PDBTrajectory: MODEL line must set the frame id");
+                }
+            }
+        // end model, time to commit frame
+        else if (reading_frame && line_tag.compare("ENDMDL") == 0)
+            {
+            if (positions.size() > 0)
+                {
+                // set the frame data
+                cur_frame = boost::shared_ptr<Frame>( new Frame(positions.size()) );
+                cur_frame->setNames(names);
+                cur_frame->setPositions(positions);
+                cur_frame->setBox(box);
+                cur_frame->setTime(frame_time);
+                
+                m_frames.push_back(cur_frame);
+                }
+            // reset to a scanning state
+            reading_frame = false;
             }
         }
-        
-        
-    /* assign the information to the cur_frame pointer
-     * - check if box and time step information is present
-     */
-    
-    if ( !has_time_step )
-        throw std::runtime_error("PDBTrajectory: frames must have time set");
-    else if ( !has_box )
-        throw std::runtime_error("PDBTrajectory: frame requires a box");
-        
-    // set cur_frame with n_particles and save information
-    cur_frame = boost::shared_ptr<Frame>( new Frame(n_particles) );
-    cur_frame->setPositions(positions);
-    cur_frame->setNames(names);
-    cur_frame->setTime(time_step);
-    cur_frame->setBox(box);
-    
-    return cur_frame;
     }
 
 void export_PDBTrajectory()
     {
     using namespace boost::python;
-    class_<PDBTrajectory, boost::shared_ptr<PDBTrajectory>, bases<Trajectory>, boost::noncopyable >
-    ("PDBTrajectory", init< >())
-    .def("addFile", &PDBTrajectory::addFile);
+    class_<PDBTrajectory, boost::shared_ptr<PDBTrajectory>, bases<Trajectory>, boost::noncopyable>("PDBTrajectory")
+    .def(init<double>());
     }

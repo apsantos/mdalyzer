@@ -1,7 +1,8 @@
 /*!
  * \file PDBTrajectory.h
  * \author Sang Beom Kim
- * \date 17 December 2014
+ * \author Michael P. Howard
+ * \date 30 December 2014
  * \brief Declaration of PDBTrajectory reader
  */
 #ifndef MDALYZER_TRAJECTORIES_PDBTRAJECTORY_H_
@@ -13,29 +14,32 @@
 
 //! PDB parser
 /*!
- *  Implementation of the Trajectory for PDB file format
+ * Declaration of the Trajectory for the PDB file format, which is extensively documented elsewhere. Multiple frames
+ * can be contained in the same file provided they are partitioned by MODEL and ENDMDL. A single CRYST1 is assumed
+ * for a single PDB file. The time of each Frame is inferred from its MODEL integer id, which is then optionally
+ * scaled by a timestep between each Frame. PDB is a fixed column file format, so whitespace must be properly obeyed.
  *
- *  \ingroup trajectories
+ * \ingroup trajectories
  */
 class PDBTrajectory : public Trajectory
     {
     public:
         //! default constructor
-        PDBTrajectory() {};
+        PDBTrajectory();
+        
+        //! constructor with timestep and frame terminator
+        PDBTrajectory(double timestep);
         
         //! default destructor
         virtual ~PDBTrajectory() {};
         
-        //! attach a file to be parsed
-        void addFile(const std::string& f);
-        
         //! reads all attached files into Frame
         virtual void read();
     private:
-        std::vector<std::string> m_files;           //!< List of files to parse
+        double m_pdb_timestep;      //!< spacing between pdb frames
         
         //! internal method for reading a single PDB file into a Frame
-        boost::shared_ptr<Frame> readFromFile(std::ifstream& file);
+        void readFromFile(std::ifstream& file);
     };
 
 //! Python export for PDBTrajectory

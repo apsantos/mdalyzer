@@ -1,7 +1,7 @@
 /*!
  * \file Trajectory.h
  * \author Michael P. Howard
- * \data 15 December 2014
+ * \date 29 December 2014
  * \brief Declaration of Trajectory data structure
  */
 #ifndef MDALYZER_TRAJECTORY_TRAJECTORY_H_
@@ -51,6 +51,13 @@ class Trajectory : boost::noncopyable
          */
         void analyze();
         
+        //! Attach a file to parse to the Trajectory
+        /*!
+         * Nearly all Trajectories require a list of files to add. If an inheriting class does not
+         * require a list of files, this method may be overridden to throw an exception, or simply ignored.
+         */
+        virtual void addFile(const std::string& file);
+        
         //! Force the whole trajectory into memory at one time.
         /*! 
          * By default, read() is empty. Inheriting classes should supply file format dependent implementations.
@@ -82,7 +89,7 @@ class Trajectory : boost::noncopyable
         
         /* Analyzer manipulation */
         //! Attach an Analyzer to the Trajectory by name
-        void addAnalyzer(boost::shared_ptr<Analyzer> compute, const std::string& name);
+        void addAnalyzer(boost::shared_ptr<Analyzer> analyzer, const std::string& name);
         
         //! Remove an Analyzer from the Trajectory by name
         void removeAnalyzer(const std::string& name);
@@ -116,6 +123,11 @@ class Trajectory : boost::noncopyable
             }
             
         /* Checkers */
+        //! check if Trajectory has simulation box set
+        bool hasBox() const
+            {
+            return (m_loc_box != NONE);
+            }
         //! check if Trajectory has particle names set
         bool hasNames() const
             {
@@ -138,10 +150,20 @@ class Trajectory : boost::noncopyable
             }
         
         /* Getters */
+        /*! \return simulation box */
+        const TriclinicBox& getBox() const
+            {
+            return m_box;
+            }
         /*! \return particle type map */
         const std::map<std::string, unsigned int>& getTypeMap() const
             {
             return m_type_map;
+            }
+        /*! \return reference to vector of particle names for Trajectory */
+        const std::vector<std::string>& getNames() const
+            {
+            return m_names;
             }
         /*! \return reference to vector of particle types for Trajectory */
         const std::vector<unsigned int>& getTypes() const
@@ -159,8 +181,45 @@ class Trajectory : boost::noncopyable
             return m_diameters;
             }
         
+        /* Setters */
+        //! set the Trajectory box
+        /*! \param box the box to set */
+        void setBox(const TriclinicBox& box)
+            {
+            m_box = box;
+            m_loc_box = OWN;
+            }
+            
+        //! set the Trajectory particle names
+        /*! 
+         * \param names the vector of particle names 
+         * \note names will be mapped to types by parse()
+         */
+        void setNames(const std::vector<std::string>& names)
+            {
+            m_names = names;
+            m_loc_names = OWN;
+            }
+        
+        //! set the Trajectory particle diameters
+        /*! \param diameters the vector of particle diameters */
+        void setDiameters(const std::vector<double>& diameters)
+            {
+            m_diameters = diameters;
+            m_loc_diameters = OWN;
+            }
+        
+        //! set the Trajectory particle masses
+        /*! \param masses the vector of particle masses */
+        void setMasses(const std::vector<double>& masses)
+            {
+            m_masses = masses;
+            m_loc_masses = OWN;
+            }
+        
     protected:
         bool m_must_read_from_file;                         //!< Flag if Trajectory should be (re-)read from file
+        std::vector<std::string> m_files;                   //!< List of files to parse
         std::vector< boost::shared_ptr<Frame> > m_frames;   //!< Vector of Frame pointers for the Trajectory
         
     private:

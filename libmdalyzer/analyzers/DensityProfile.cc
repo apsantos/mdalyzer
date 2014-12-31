@@ -3,6 +3,7 @@
 #include "Frame.h"
 #include "TriclinicBox.h"
 
+#include <cmath>
 #include <fstream>
 #include <algorithm>
 
@@ -57,12 +58,12 @@ void DensityProfile::evaluate()
     {
     // read the frames and make sure there is a simulation box
     std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
-    if (!frames[0]->hasBox())
+    if (!m_traj->hasBox())
         {
         // error! box not found
         throw std::runtime_error("DensityProfile needs a simulation box in the first frame");
         }
-    TriclinicBox box = frames[0]->getBox();
+    TriclinicBox box = m_traj->getBox();
     Vector3<double> box_len = box.getLength();
     
     // reserve memory for density profile
@@ -98,11 +99,13 @@ void DensityProfile::evaluate()
     for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
         {
         boost::shared_ptr<Frame> cur_frame = frames[frame_idx];
-        TriclinicBox cur_box = cur_frame->getBox();
-        Vector3<double> cur_box_len = cur_box.getLength();
-        if (cur_box_len != box_len)
+        if (cur_frame->hasBox())
             {
-            throw std::runtime_error("Average DensityProfile cannot be computed with variable box size");
+            TriclinicBox cur_box = cur_frame->getBox();
+            if (cur_box.getLength() != box_len)
+                {
+                throw std::runtime_error("Average DensityProfile cannot be computed with variable box size");
+                }
             }
         
         if (!cur_frame->hasPositions())
@@ -142,17 +145,17 @@ void DensityProfile::evaluate()
             Vector3<double> cur_pos = pos[i];
             if (m_bins.x > 0)
                 {
-                cur_pos.x -= box_len.x*round(cur_pos.x/box_len.x);
+                cur_pos.x -= box_len.x*floor(cur_pos.x/box_len.x);
                 density.x[type_idx_i][(unsigned int)(cur_pos.x/dr.x)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             if (m_bins.y > 0)
                 {
-                cur_pos.y -= box_len.y*round(cur_pos.y/box_len.y);
+                cur_pos.y -= box_len.y*floor(cur_pos.y/box_len.y);
                 density.y[type_idx_i][(unsigned int)(cur_pos.y/dr.y)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             if (m_bins.z > 0)
                 {
-                cur_pos.z -= box_len.z*round(cur_pos.z/box_len.z);
+                cur_pos.z -= box_len.z*floor(cur_pos.z/box_len.z);
                 density.z[type_idx_i][(unsigned int)(cur_pos.z/dr.z)] += ((m_mass_weighted && m_traj->hasMasses()) ? mass[i] : 1.0);
                 }
             }

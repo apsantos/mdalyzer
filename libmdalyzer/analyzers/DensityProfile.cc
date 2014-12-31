@@ -265,7 +265,7 @@ void export_DensityProfile()
     {
     using namespace boost::python;
     class_<DensityProfile, boost::shared_ptr<DensityProfile>, bases<Analyzer>, boost::noncopyable >
-    ("DensityProfile", init< boost::shared_ptr<Trajectory>, const std::string&, Vector3<unsigned int>& >())
+    ("DensityProfile", init< boost::shared_ptr<Trajectory>, const std::string&, const Vector3<unsigned int>& >())
     .def("addType",&DensityProfile::addType)
     .def("deleteType",&DensityProfile::deleteType)
     .def("useMassWeighting",&DensityProfile::useMassWeighting);

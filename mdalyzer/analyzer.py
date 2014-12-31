@@ -59,4 +59,16 @@ class density(analyzer):
         self.weight = weight
         self.cpp.useMassWeighting(self.weight)
     
+class clustering(analyzer):
+    """Clustering analysis"""
+    def __init__(self, traj, file_name='clustering.dat', distance=1.0, name=None):
+        analyzer.__init__(self, traj, file_name, name)
+        
+        self.distance = distance
+        self.cpp = libmdalyzer.Clustering(self.trajectory.cpp, self.file_name, self.distance)
+        self.trajectory.cpp.addCompute(self.cpp, self.name)
     
+    def set_distance(self, distance):
+        """Set interatomic distance defining particles in a cluster"""
+        self.distance = distance
+        self.cpp.setDistance(self.distance)

@@ -25,13 +25,13 @@ class TriclinicBox
         TriclinicBox();
         
         //! constructor for orthorhombic box
-        TriclinicBox(Vector3<double> length);
+        TriclinicBox(const Vector3<double>& length);
         
         //! constructor for triclinic box with known tilts
-        TriclinicBox(Vector3<double> length, Vector3<double> tilt);
+        TriclinicBox(const Vector3<double>& length, const Vector3<double>& tilt);
         
         //! construct a box from three arbitrarily oriented vectors
-        TriclinicBox(Vector3<double> v1, Vector3<double> v2, Vector3<double> v3);
+        TriclinicBox(const Vector3<double>& v1, const Vector3<double>& v2, const Vector3<double>& v3);
         
         //! default destructor
         ~TriclinicBox() {};
@@ -50,6 +50,9 @@ class TriclinicBox
         
         //! translates positions in place by their image counters
         void shiftImage(const Vector3<double>& image, Vector3<double>& pos) const;
+        
+        //! computes the minimum image of a vector between particles in the box
+        void minImage(Vector3<double>& vec) const;
     
     private:
         Vector3<double> m_length;   //!< box edge lengths

@@ -45,19 +45,11 @@ class GROTrajectory : public Trajectory
         //! reads all attached files into Frames
         virtual void read();
     private:
-        unsigned int m_n_pos_chars;         //!< number of chars in a position chunk
-        unsigned int m_n_vel_chars;         //!< number of chars in a velocity chunk
+        std::string m_gro_parse_string; //!< formatting string for scanf to read gro line
+        unsigned int m_gro_line_length; //!< minimum character length for a line
         
         //! reads a single GRO file stream into multiple Frames
         void readFromFile(std::ifstream& file);
-        
-        //! parses a fixed length substring
-        template <typename T>
-        inline T readSubstring(const std::string& line,
-                               std::istringstream& line_parser,
-                               unsigned int start,
-                               unsigned int len,
-                               const std::string& errmsg);
     };
 
 //! Python export for GROTrajectory

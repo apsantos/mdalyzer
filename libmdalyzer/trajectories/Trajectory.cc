@@ -95,22 +95,22 @@ void Trajectory::removeName(const std::string& name)
  * \param name particle name
  * \returns integer id for type
  */
-unsigned int Trajectory::getTypeByName(const std::string& name)
+unsigned int Trajectory::getTypeByName(const std::string& name) const
     {
-    std::map<std::string, unsigned int>::iterator cur_type = m_type_map.find(name);
+    std::map<std::string, unsigned int>::const_iterator cur_type = m_type_map.find(name);
     if (cur_type == m_type_map.end())
         throw std::runtime_error("Trajectory: name not found");
         
-    return m_type_map[name];
+    return cur_type->second;
     }
 
 /*!
  * \param type integer id for type
  * \returns name particle name
  */
-std::string Trajectory::getNameByType(unsigned int type)
+std::string Trajectory::getNameByType(unsigned int type) const
     {
-    std::map<std::string, unsigned int>::iterator cur_type;
+    std::map<std::string, unsigned int>::const_iterator cur_type;
     for (cur_type = m_type_map.begin(); cur_type != m_type_map.end(); ++cur_type)
         {
         if (cur_type->second == type)

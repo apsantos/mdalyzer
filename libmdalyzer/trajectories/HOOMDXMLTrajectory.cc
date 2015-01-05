@@ -10,11 +10,6 @@
 #include <sstream>
 #include <iostream>
 
-HOOMDXMLTrajectory::HOOMDXMLTrajectory()
-    : m_xml_dt(1.0)
-    {
-    }
-
 HOOMDXMLTrajectory::HOOMDXMLTrajectory(double dt)
     : m_xml_dt(dt)
     {
@@ -293,6 +288,5 @@ void export_HOOMDXMLTrajectory()
     {
     using namespace boost::python;
     class_<HOOMDXMLTrajectory, boost::shared_ptr<HOOMDXMLTrajectory>, bases<Trajectory>, boost::noncopyable>
-    ("HOOMDXMLTrajectory")
-    .def(init<double>());
+    ("HOOMDXMLTrajectory",init<double>());
     }

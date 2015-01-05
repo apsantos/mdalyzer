@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_SUITE(Trajectories)
 //! test for frame ordering
 BOOST_AUTO_TEST_CASE(frame_sort)
     {
-    HOOMDXMLTrajectory traj;
+    HOOMDXMLTrajectory traj(1.0);
     traj.addFile("test/unit/hoomd/frame.xml.1");
     traj.addFile("test/unit/hoomd/frame.xml.2");
     traj.addFile("test/unit/hoomd/frame.xml.3");
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(frame_sort)
 //! test for frame extraction from first frame
 BOOST_AUTO_TEST_CASE(frame_extract)
     {
-    HOOMDXMLTrajectory traj;
+    HOOMDXMLTrajectory traj(1.0);
     traj.addFile("test/unit/hoomd/frame.xml.1");
     traj.addFile("test/unit/hoomd/frame.xml.2");
     traj.addFile("test/unit/hoomd/frame.xml.3");
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(frame_extract)
 //! test for public setters of trajectory data    
 BOOST_AUTO_TEST_CASE(frame_override)
     {
-    HOOMDXMLTrajectory traj;
+    HOOMDXMLTrajectory traj(1.0);
     traj.addFile("test/unit/hoomd/frame.xml.3");
     
     // set box, names, diameters, and masses externally

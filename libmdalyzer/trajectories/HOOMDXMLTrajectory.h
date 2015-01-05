@@ -21,10 +21,7 @@
  */
 class HOOMDXMLTrajectory : public Trajectory
     {
-    public:
-        //! default constructor
-        HOOMDXMLTrajectory();
-        
+    public: 
         //! constructor with frame skip
         HOOMDXMLTrajectory(double dt);
         

@@ -58,7 +58,7 @@ $(BUILD_PATH)/$(TARGET).so: $(OBJ)
 	$(CXX) $(LDFLAGS) $^ -o $@
 
 # check compiles and runs the boost and python unit tests
-check: checkdirs $(BUILD_PATH)/$(TARGET).so $(BUILD_PATH)/$(TEST_TARGET)
+check: all $(BUILD_PATH)/$(TEST_TARGET)
 	@echo ""
 	@echo ""
 	$(BUILD_PATH)/$(TEST_TARGET) --log_level=test_suite
@@ -77,7 +77,7 @@ clean:
 	@rm -rf $(BUILD_PATH)/*
 	@rm -rf $(INSTALL_PATH)/mdalyzer/*.pyc
 
-install:
+install: all
 	@mkdir -p $(INSTALL_PATH)
 	@cp $(BUILD_PATH)/$(TARGET).so $(INSTALL_PATH)/
 	@cp -r mdalyzer $(INSTALL_PATH)/

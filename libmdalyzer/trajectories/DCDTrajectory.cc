@@ -68,9 +68,6 @@ boost::shared_ptr<Frame> DCDTrajectory::readTimeStep(FILE* fileptr)
     {
     boost::shared_ptr<Frame> cur_frame; //default initialization is null ptr
     cur_frame = boost::shared_ptr<Frame>( new Frame(m_n_dcdparticles) );
-    //cur_frame->setTypes( m_frames[0]->getTypes() );
-    //cur_frame->setNames( m_frames[0]->getNames() );
-    //cur_frame->setMasses( m_frames[0]->getMasses() );
     std::vector<float> X(m_n_dcdparticles, 0.);
     std::vector<float> Y(m_n_dcdparticles, 0.);
     std::vector<float> Z(m_n_dcdparticles, 0.);
@@ -118,15 +115,24 @@ void DCDTrajectory::read()
     {
     // read the initial frame
     m_must_read_from_file = true;
-    m_initial_traj->read();
+    m_initial_traj->analyze();
     m_frames.push_back( m_initial_traj->getFrame(0) );
     // set information to the dcd trajectory
-    //this->setNames( m_initial_traj->getNames() );
-    //this->setDiameters( m_initial_traj->getDiameters() );
-    //this->setMasses( m_initial_traj->getMasses() );
+    if ( m_initial_traj->hasNames() )
+        {
+        this->setNames( m_initial_traj->getNames() );
+        }
+    if ( m_initial_traj->hasDiameters() )
+        {
+        this->setDiameters( m_initial_traj->getDiameters() );
+        }
+    if ( m_initial_traj->hasMasses() )
+        {
+        this->setMasses( m_initial_traj->getMasses() );
+        }
+
     // read the dcd 
     readFromFile();
-    // Check thta the number of particles match the initial and DCD trajectories
     
     m_must_read_from_file = false;
     }
@@ -158,25 +164,12 @@ void DCDTrajectory::readFromFile()
         start_time = m_frame_start;
         }
 
-    // check that the number of paticles in the DCD match with the input file
-    std::string outf_name = "dcdstuff.dat";
-    std::ofstream outf(outf_name.c_str());
-    outf.precision(4);
-    outf<<"start time = "<<m_frame_start<<"\n";
-    outf<<"dcd num frames = "<<m_n_frames<<"\n";
-    outf<<"dcd num particless = "<<m_n_dcdparticles<<"\n";
-
     for (unsigned int frame_idx = 0; frame_idx < m_n_frames; ++frame_idx)
         {
         boost::shared_ptr<Frame> cur_frame = readTimeStep(fileptr);
         cur_frame->setTime( (double)(m_time_step * (frame_idx+1)) + start_time );
         m_frames.push_back(cur_frame);
-        std::vector< Vector3<double> > pos = cur_frame->getPositions();
-        Vector3<double> cur_pos = pos[m_n_dcdparticles-1];
-        outf<<"frame "<<frame_idx+1<<"\t"<<cur_pos.x<<"\n";
         }
-    outf<<"final number of frames = "<<m_frames.size()<<"\n";
-    outf.close();
 
     // close DCD file
     close_dcd_read(fileptr, m_n_fixed_c, m_freeparticles_c);

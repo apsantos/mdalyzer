@@ -67,13 +67,16 @@ void DCDTrajectory::readHeader(FILE* fileptr)
 boost::shared_ptr<Frame> DCDTrajectory::readTimeStep(FILE* fileptr)
     {
     boost::shared_ptr<Frame> cur_frame; //default initialization is null ptr
-    // read in next step, if available
-    int errcode;
+    cur_frame = boost::shared_ptr<Frame>( new Frame(m_n_dcdparticles) );
+    //cur_frame->setTypes( m_frames[0]->getTypes() );
+    //cur_frame->setNames( m_frames[0]->getNames() );
+    //cur_frame->setMasses( m_frames[0]->getMasses() );
     std::vector<float> X(m_n_dcdparticles, 0.);
     std::vector<float> Y(m_n_dcdparticles, 0.);
     std::vector<float> Z(m_n_dcdparticles, 0.);
 
-    errcode = read_dcdstep(fileptr, m_n_dcdparticles_c, &X[0], &Y[0], &Z[0], m_n_fixed_c,
+    // read in next step, if available
+    int errcode = read_dcdstep(fileptr, m_n_dcdparticles_c, &X[0], &Y[0], &Z[0], m_n_fixed_c,
     	 (m_first_dcdread == 0), m_freeparticles_c, m_reverse_endian_c, m_charmm_flags_c);
 
     if (m_first_dcdread == 0)
@@ -85,7 +88,7 @@ boost::shared_ptr<Frame> DCDTrajectory::readTimeStep(FILE* fileptr)
         {
         if (errcode == (-1)) 
             {
-            throw std::runtime_error( "End of DCD file reached." + m_file);
+            throw std::runtime_error( "End of DCD file reached: " + m_file );
             }
         else if (errcode == DCD_BADFORMAT)
             {
@@ -96,18 +99,16 @@ boost::shared_ptr<Frame> DCDTrajectory::readTimeStep(FILE* fileptr)
             throw std::runtime_error( "ERROR: Early end to DCD file" + m_file);
             }
         }
-    // convert the c arrays to our API form
+
+    // convert the c arrays to our API 
     for (unsigned int ipart = 0; ipart < m_n_dcdparticles; ++ipart)
         {
             Vector3<double> pos; 
             pos.x = X[ipart];
             pos.y = Y[ipart];
             pos.z = Z[ipart];
-            cur_frame->setPosition( ipart, pos );
+            cur_frame->setPosition( ipart, pos ); 
         }
-    cur_frame->setNames( m_frames[0]->getNames() );
-    cur_frame->setTypes( m_frames[0]->getTypes() );
-    cur_frame->setMasses( m_frames[0]->getMasses() );
     return cur_frame;
     }
 
@@ -117,14 +118,16 @@ void DCDTrajectory::read()
     {
     // read the initial frame
     m_must_read_from_file = true;
-    m_initial_traj->analyze();
+    m_initial_traj->read();
     m_frames.push_back( m_initial_traj->getFrame(0) );
     // set information to the dcd trajectory
-    this->setNames( m_initial_traj->getNames() );
-    this->setDiameters( m_initial_traj->getDiameters() );
-    this->setMasses( m_initial_traj->getMasses() );
+    //this->setNames( m_initial_traj->getNames() );
+    //this->setDiameters( m_initial_traj->getDiameters() );
+    //this->setMasses( m_initial_traj->getMasses() );
     // read the dcd 
     readFromFile();
+    // Check thta the number of particles match the initial and DCD trajectories
+    
     m_must_read_from_file = false;
     }
 
@@ -156,13 +159,24 @@ void DCDTrajectory::readFromFile()
         }
 
     // check that the number of paticles in the DCD match with the input file
+    std::string outf_name = "dcdstuff.dat";
+    std::ofstream outf(outf_name.c_str());
+    outf.precision(4);
+    outf<<"start time = "<<m_frame_start<<"\n";
+    outf<<"dcd num frames = "<<m_n_frames<<"\n";
+    outf<<"dcd num particless = "<<m_n_dcdparticles<<"\n";
 
-    for (unsigned int frame_idx = m_frame_start; frame_idx < m_n_frames; ++frame_idx)
+    for (unsigned int frame_idx = 0; frame_idx < m_n_frames; ++frame_idx)
         {
         boost::shared_ptr<Frame> cur_frame = readTimeStep(fileptr);
-        cur_frame->setTime( (m_time_step * frame_idx) + start_time );
-        m_frames.push_back(readTimeStep(fileptr));
+        cur_frame->setTime( (double)(m_time_step * (frame_idx+1)) + start_time );
+        m_frames.push_back(cur_frame);
+        std::vector< Vector3<double> > pos = cur_frame->getPositions();
+        Vector3<double> cur_pos = pos[m_n_dcdparticles-1];
+        outf<<"frame "<<frame_idx+1<<"\t"<<cur_pos.x<<"\n";
         }
+    outf<<"final number of frames = "<<m_frames.size()<<"\n";
+    outf.close();
 
     // close DCD file
     close_dcd_read(fileptr, m_n_fixed_c, m_freeparticles_c);

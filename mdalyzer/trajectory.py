@@ -66,11 +66,17 @@ class dcd(trajectory):
        Make sure that all other trajectory classes preceed the dcd class, 
        as it depends on all others
     """
-    def __init__(self, dcd_file, i_file, i_type=None):
+    def __init__(self, dcd_file, i_file, i_type=None, precision=3, time_step=1.0):
         self.traj_types = {
                 'HOOMDXML':libmdalyzer.HOOMDXMLTrajectory(), 
                 'XML':libmdalyzer.HOOMDXMLTrajectory(),
-                'xml':libmdalyzer.HOOMDXMLTrajectory()}
+                'xml':libmdalyzer.HOOMDXMLTrajectory(),
+                'GRO':libmdalyzer.GROTrajectory(precision),
+                'gro':libmdalyzer.GROTrajectory(precision),
+                'PDB':libmdalyzer.PDBTrajectory(time_step),
+                'pdb':libmdalyzer.PDBTrajectory(time_step),
+                'XYZ':libmdalyzer.XYZTrajectory(),
+                'xyz':libmdalyzer.XYZTrajectory()}
         self.dcd_file = dcd_file
         self.i_file = i_file
         self.i_file_ptr = None

@@ -4,20 +4,20 @@
 
 #include "Trajectory.h"
 #include "HOOMDXMLTrajectory.h"
+#include "DCDTrajectory.h"
 #include "GROTrajectory.h"
 #include "PDBTrajectory.h"
 #include "XYZTrajectory.h"
 #include "TRRTrajectory.h"
 #include "XTCTrajectory.h"
 
-
 #include "Frame.h"
 #include "TriclinicBox.h"
 
 #include "Analyzer.h"
 #include "DensityProfile.h"
+#include "MeanSquaredDisplacement.h"
 #include "Clustering.h"
-// #include "MeanSquaredDisplacement.h"
 
 #include "VectorMath.h"
 
@@ -38,6 +38,7 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     
     // trajectories
     export_Trajectory();
+    export_DCDTrajectory();
     export_HOOMDXMLTrajectory();
     export_GROTrajectory();
     export_PDBTrajectory();
@@ -52,6 +53,7 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     // analyzers
     export_Analyzer();
     export_DensityProfile();
+    export_MeanSquaredDisplacement();
     export_Clustering();
-//     export_MeanSquaredDisplacement();
     }
+

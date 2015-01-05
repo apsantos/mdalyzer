@@ -1,3 +1,10 @@
+/*!
+ * \file MeanSquaredDisplacement.cc
+ * \author Andrew P. Santos
+ * \brief Mean Squared Displacement of Particles Analyzer
+ * \todo test the functions
+ * \ingroup Analyzer
+ */
 #include "MeanSquaredDisplacement.h"
 #include "Trajectory.h"
 #include "Frame.h"
@@ -14,7 +21,9 @@ MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> t
     m_type_names.reserve(m_traj->getNumTypes());
     }
 
-
+/*!
+ * \param name Particle type string 
+ */    
 void MeanSquaredDisplacement::addType(const std::string& name)
     {
     std::vector<std::string>::iterator name_it = std::find(m_type_names.begin(), m_type_names.end(), name);
@@ -23,6 +32,10 @@ void MeanSquaredDisplacement::addType(const std::string& name)
         m_type_names.push_back(name);
         }
     }
+
+/*!
+ * \param name Particle type string 
+ */    
 void MeanSquaredDisplacement::deleteType(const std::string& name)
     {
     std::vector<std::string>::iterator name_it = std::find(m_type_names.begin(), m_type_names.end(), name);
@@ -36,6 +49,11 @@ void MeanSquaredDisplacement::deleteType(const std::string& name)
         }
     }
 
+/*!
+ * Uses time origins to calculate the mean squared disp. of particles of like types
+ * using user-defined time origins.  Algorithm is based on Frenkel and Smit's 
+ * "Understanding Molecular Simulation". 
+ */    
 void MeanSquaredDisplacement::evaluate()
     {
 
@@ -46,6 +64,11 @@ void MeanSquaredDisplacement::evaluate()
         // error! there is no time data
         throw std::runtime_error("MeanSquaredDisplacement needs data on time");
         }
+    if (!frames[0]->hasTypes() || !m_traj->hasTypes())
+        {
+        // error! there is no time data
+        throw std::runtime_error("MeanSquaredDisplacement needs types");
+        }
     // set up the msd
     Vector3< std::vector< std::vector<float> > > msd;
     // if no types are specified, use all particles
@@ -54,6 +77,10 @@ void MeanSquaredDisplacement::evaluate()
     msd.x.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
     msd.y.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
     msd.z.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
+    std::string outf_name = "msdstuff.dat";
+    std::ofstream outf(outf_name.c_str());
+    outf.precision(4);
+    outf<<m_type_names.size()<<"\n";
 
     std::vector<unsigned int> type;
     if (frames[0]->hasTypes())
@@ -64,6 +91,17 @@ void MeanSquaredDisplacement::evaluate()
         {
         type = m_traj->getTypes();
         }
+          
+    if (m_type_names.size() != type_size)
+        {
+        for (unsigned int ipart = 0; ipart < type.size(); ++ipart)
+            {
+            addType( m_traj->getNameByType( type[ipart] ) );
+            }
+        }
+
+    outf<<m_type_names.size()<<"\n";
+    outf.close();
 
     std::vector<unsigned int> ntime(frames.size(), 0); 
     std::vector<unsigned int> time0; // vector of time origin frame
@@ -113,6 +151,11 @@ void MeanSquaredDisplacement::evaluate()
     write(msd, ntime);
     }
 
+/*!
+ * \breif write out the total and directional MSD for each particle type
+ * \param msd Vector3 struct of 2D vector (particle type, time)
+ * \param ntime Histogram of the instances a time bin was visited in the MSD evaluation
+ */    
 void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<float> > >& msd, const std::vector<unsigned int>& ntime)
     {
     // read the frames and make sure there is time data
@@ -120,6 +163,11 @@ void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<flo
 
     // if no types are specified, use all particles
     unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); 
+    std::string outf_name = "msdstuff2.dat";
+    std::ofstream outf(outf_name.c_str());
+    outf.precision(4);
+    outf<<type_size<<"\n";
+    outf.close();
 
     std::vector<unsigned int> type;
     if (frames[0]->hasTypes())
@@ -173,7 +221,7 @@ void export_MeanSquaredDisplacement()
     {
     using namespace boost::python;
     class_<MeanSquaredDisplacement, boost::shared_ptr<MeanSquaredDisplacement>, bases<Analyzer>, boost::noncopyable >
-    ("MeanSquaredDisplacement", init< boost::shared_ptr<Trajectory>, const std::string&, const unsigned int& >())
+    ("MeanSquaredDisplacement", init< boost::shared_ptr<Trajectory>, const std::string&, unsigned int >())
     .def("addType",&MeanSquaredDisplacement::addType)
     .def("deleteType",&MeanSquaredDisplacement::deleteType);
     }

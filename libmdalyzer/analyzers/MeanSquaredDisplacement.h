@@ -13,7 +13,7 @@
 
 /*!
  *
- * \ingroup computes
+ * \ingroup Analyzer
  */
 class MeanSquaredDisplacement : public Analyzer
     {
@@ -29,7 +29,7 @@ class MeanSquaredDisplacement : public Analyzer
         
     private:
         std::string m_file_name;                    //!< Output file name
-        unsigned int m_origins;               //!< Number of frames between time origins
+        unsigned int m_origins;                     //!< Num of frames between time origins
         std::vector<std::string> m_type_names;      //!< List of type names to compute on
         
     };

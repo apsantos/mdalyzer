@@ -72,3 +72,39 @@ class clustering(analyzer):
         """Set interatomic distance defining particles in a cluster"""
         self.distance = distance
         self.cpp.setDistance(self.distance)
+
+class meanSquaredDisplacement(analyzer):
+    """Density profile analyzer"""
+    
+    def __init__(self, traj, file_name='msd', origins='1', name=None, types=[]):
+        analyzer.__init__(self, traj, file_name, name)
+        self.origins = origins
+        
+        self.cpp = libmdalyzer.MeanSquaredDisplacement(self.trajectory.cpp, self.file_name, self.origins)
+        self.trajectory.cpp.addCompute(self.cpp, self.name)
+        
+        self.types = []
+        
+        if not isinstance(types, list):
+            types = [types]
+        self.add_type(types)
+    
+    def add_type(self, types):
+        """Add types to calculate"""
+        if not isinstance(types, list):
+            types = [types]
+            
+        for t in types:
+            if t not in self.types:
+                self.types += [t]
+                self.cpp.addType(t)
+    
+    def delete_type(self, types):
+        """Remove types to calculate"""
+        if not isinstance(types, list):
+            types = [types]
+            
+        for t in types:
+            self.types.remove(t)
+            self.cpp.deleteType(t)
+    

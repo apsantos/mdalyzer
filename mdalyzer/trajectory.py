@@ -70,9 +70,9 @@ class dcd(trajectory):
     """
     def __init__(self, dcd_file, i_file, i_type=None, precision=3, time_step=1.0):
         self.traj_types = {
-                'HOOMDXML':libmdalyzer.HOOMDXMLTrajectory(), 
-                'XML':libmdalyzer.HOOMDXMLTrajectory(),
-                'xml':libmdalyzer.HOOMDXMLTrajectory(),
+                'HOOMDXML':libmdalyzer.HOOMDXMLTrajectory(time_step), 
+                'XML':libmdalyzer.HOOMDXMLTrajectory(time_step),
+                'xml':libmdalyzer.HOOMDXMLTrajectory(time_step),
                 'GRO':libmdalyzer.GROTrajectory(precision),
                 'gro':libmdalyzer.GROTrajectory(precision),
                 'PDB':libmdalyzer.PDBTrajectory(time_step),

@@ -37,7 +37,7 @@ class DCDTrajectory : public Trajectory
         int m_n_dcdparticles_c;         //!< num of particles in the dcd file
         int m_n_frames_c;               //!< num of frames in dcd file
         int *m_freeparticles_c;         //!< particles that change position over time
-        int m_reverse_endian_c;         //!< How do you crack you eggs?
+        int m_reverse_endian_c;         //!< Flag for reversing binary endiaism; i.e. how do you crack you eggs?
         int m_n_fixed_c;                //!< num of fixed particles (i.e. zeolite)
         int m_charmm_flags_c;           //!< flags for what information is available
         int m_first_dcdread;            //!< is the dcd file opened?

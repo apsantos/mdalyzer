@@ -34,7 +34,7 @@ class HOOMDXMLTrajectory : public Trajectory
         //! reads all attached files into Frame
         virtual void read();
     private:
-        double m_xml_dt;                            //!< HOOMD XML simulation dt to convert to real time
+        const double m_xml_dt;                      //!< HOOMD XML simulation dt to convert to real time
         static float s_supported_hoomd_version;     //!< Flag for HOOMD support level
         
         //! internal method for reading a single HOOMD XML file into a Frame

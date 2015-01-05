@@ -24,8 +24,6 @@ class density(analyzer):
         self.types = []
         self.weight = True
         
-        if not isinstance(types, (list,tuple)):
-            types = [types]
         self.add_type(types)
         self.mass_weight(weight)
     
@@ -73,10 +71,10 @@ class clustering(analyzer):
         self.distance = distance
         self.cpp.setDistance(self.distance)
 
-class meanSquaredDisplacement(analyzer):
+class msd(analyzer):
     """Density profile analyzer"""
     
-    def __init__(self, traj, file_name='msd', origins='1', name=None, types=[]):
+    def __init__(self, traj, file_name='msd', origins=1, name=None, types=[]):
         analyzer.__init__(self, traj, file_name, name)
         self.origins = origins
         
@@ -85,13 +83,11 @@ class meanSquaredDisplacement(analyzer):
         
         self.types = []
         
-        if not isinstance(types, list):
-            types = [types]
         self.add_type(types)
     
     def add_type(self, types):
         """Add types to calculate"""
-        if not isinstance(types, list):
+        if not isinstance(types, (list,tuple)):
             types = [types]
             
         for t in types:
@@ -101,7 +97,7 @@ class meanSquaredDisplacement(analyzer):
     
     def delete_type(self, types):
         """Remove types to calculate"""
-        if not isinstance(types, list):
+        if not isinstance(types, (list,tuple)):
             types = [types]
             
         for t in types:

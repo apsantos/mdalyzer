@@ -15,7 +15,7 @@
 
 #include <boost/python.hpp>
 
-MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const unsigned int&  origins)
+MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, unsigned int  origins)
     : Analyzer(traj), m_file_name(file_name), m_origins(origins)
     {
     m_type_names.reserve(m_traj->getNumTypes());
@@ -64,33 +64,22 @@ void MeanSquaredDisplacement::evaluate()
         // error! there is no time data
         throw std::runtime_error("MeanSquaredDisplacement needs data on time");
         }
-    if (!frames[0]->hasTypes() || !m_traj->hasTypes())
+    if (!m_traj->hasTypes())
         {
         // error! there is no time data
         throw std::runtime_error("MeanSquaredDisplacement needs types");
         }
     // set up the msd
-    Vector3< std::vector< std::vector<float> > > msd;
+    Vector3< std::vector< std::vector<double> > > msd;
     // if no types are specified, use all particles
     unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); 
     // zero the msd values and time counter
-    msd.x.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
-    msd.y.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
-    msd.z.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
-    std::string outf_name = "msdstuff.dat";
-    std::ofstream outf(outf_name.c_str());
-    outf.precision(4);
-    outf<<m_type_names.size()<<"\n";
+    msd.x.resize(type_size, std::vector<double>( frames.size(), 0.0 ));
+    msd.y.resize(type_size, std::vector<double>( frames.size(), 0.0 ));
+    msd.z.resize(type_size, std::vector<double>( frames.size(), 0.0 ));
 
     std::vector<unsigned int> type;
-    if (frames[0]->hasTypes())
-        {
-        type = frames[0]->getTypes();
-        }
-    else if (m_traj->hasTypes())
-        {
-        type = m_traj->getTypes();
-        }
+    type = m_traj->getTypes();
           
     if (m_type_names.size() != type_size)
         {
@@ -99,9 +88,6 @@ void MeanSquaredDisplacement::evaluate()
             addType( m_traj->getNameByType( type[ipart] ) );
             }
         }
-
-    outf<<m_type_names.size()<<"\n";
-    outf.close();
 
     std::vector<unsigned int> ntime(frames.size(), 0); 
     std::vector<unsigned int> time0; // vector of time origin frame
@@ -156,27 +142,22 @@ void MeanSquaredDisplacement::evaluate()
  * \param msd Vector3 struct of 2D vector (particle type, time)
  * \param ntime Histogram of the instances a time bin was visited in the MSD evaluation
  */    
-void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<float> > >& msd, const std::vector<unsigned int>& ntime)
+void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<double> > >& msd, const std::vector<unsigned int>& ntime)
     {
     // read the frames and make sure there is time data
     std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
 
     // if no types are specified, use all particles
     unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); 
-    std::string outf_name = "msdstuff2.dat";
-    std::ofstream outf(outf_name.c_str());
-    outf.precision(4);
-    outf<<type_size<<"\n";
-    outf.close();
 
     std::vector<unsigned int> type;
-    if (frames[0]->hasTypes())
-        {
-        type = frames[0]->getTypes();
-        }
-    else if (m_traj->hasTypes())
+    if (m_traj->hasTypes())
         {
         type = m_traj->getTypes();
+        }
+    else
+        {
+        throw std::runtime_error("MeanSquaredDisplacement needs types");
         }
 
     std::vector<unsigned int> type_map(m_type_names.size());
@@ -195,8 +176,8 @@ void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<flo
         {
         std::string outf_name = m_file_name + "_" + m_type_names[cur_type] + ".dat";
         std::ofstream outf(outf_name.c_str());
-        outf.precision(4);
-        outf<<"time msd-total   -x    -y   -z";
+        outf.precision(8);
+        outf<<"# time total   x    y   z";
         outf<<std::endl;
         for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
             {

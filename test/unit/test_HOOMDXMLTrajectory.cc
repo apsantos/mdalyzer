@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_SUITE(HOOMDXML)
 //! test all information is read from a single frame
 BOOST_AUTO_TEST_CASE(HOOMDXML_read_frame)
     {
-	HOOMDXMLTrajectory traj;
+	HOOMDXMLTrajectory traj(1.0);
 	traj.addFile("test/unit/hoomd/frame.xml.1");
 	traj.analyze();
 	
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(HOOMDXML_read_frame)
 //! test all information is read from multiple frames
 BOOST_AUTO_TEST_CASE(HOOMDXML_read_multiframes)
     {
-    HOOMDXMLTrajectory traj;
+    HOOMDXMLTrajectory traj(1.0);
     traj.addFile("test/unit/hoomd/frame.xml.1");
     traj.addFile("test/unit/hoomd/frame.xml.2");
     traj.analyze();
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(HOOMDXML_read_multiframes)
 //! test file can be read if positions are not set (special first field)
 BOOST_AUTO_TEST_CASE(HOOMDXML_read_only_velocity)
     {
-    HOOMDXMLTrajectory traj;
+    HOOMDXMLTrajectory traj(1.0);
     traj.addFile("test/unit/hoomd/frame.xml.only_velocity");
     traj.analyze();
 
@@ -71,42 +71,42 @@ BOOST_AUTO_TEST_CASE(HOOMDXML_exceptions)
     BOOST_TEST_MESSAGE("Testing exception throws of HOOMDXMLTrajectory, expect 6 output messages");
     // file not found
         {
-        HOOMDXMLTrajectory traj;
+        HOOMDXMLTrajectory traj(1.0);
         traj.addFile("test/unit/hoomd/not.a.file.xml");    
         BOOST_CHECK_THROW(traj.analyze(), std::exception);
         }
     
     // version too old
         {
-        HOOMDXMLTrajectory traj;
+        HOOMDXMLTrajectory traj(1.0);
         traj.addFile("test/unit/hoomd/frame.xml.version");
         BOOST_CHECK_THROW(traj.analyze(), std::exception);
         }
     
     // missing timestep
         {
-        HOOMDXMLTrajectory traj;
+        HOOMDXMLTrajectory traj(1.0);
         traj.addFile("test/unit/hoomd/frame.xml.timestep");
         BOOST_CHECK_THROW(traj.analyze(), std::exception);
         }  
     
     // no box
         {
-        HOOMDXMLTrajectory traj;
+        HOOMDXMLTrajectory traj(1.0);
         traj.addFile("test/unit/hoomd/frame.xml.nobox");
         BOOST_CHECK_THROW(traj.analyze(), std::exception);
         }  
         
     // missing box edge
         {
-        HOOMDXMLTrajectory traj;
+        HOOMDXMLTrajectory traj(1.0);
         traj.addFile("test/unit/hoomd/frame.xml.box");
         BOOST_CHECK_THROW(traj.analyze(), std::exception);
         }
     
     // velocity mismatch
         {
-        HOOMDXMLTrajectory traj;
+        HOOMDXMLTrajectory traj(1.0);
         traj.addFile("test/unit/hoomd/frame.xml.velocity");
         BOOST_CHECK_THROW(traj.analyze(), std::exception);
         } 

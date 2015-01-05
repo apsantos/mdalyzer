@@ -34,8 +34,10 @@ class trajectory(object):
 
 class hoomd(trajectory):
     """HOOMD XML trajectory"""
-    def __init__(self):
-        self.cpp = libmdalyzer.HOOMDXMLTrajectory()
+    def __init__(self, dt=1.0):
+        if dt <= 0.0:
+            raise RuntimeError("HOOMDXMLTrajectory timestep must be positive")
+        self.cpp = libmdalyzer.HOOMDXMLTrajectory(dt)
 
 class gro(trajectory):
     """GRO file trajectory"""

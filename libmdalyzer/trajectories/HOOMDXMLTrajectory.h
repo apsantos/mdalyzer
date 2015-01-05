@@ -21,9 +21,9 @@
  */
 class HOOMDXMLTrajectory : public Trajectory
     {
-    public:
-        //! default constructor
-        HOOMDXMLTrajectory() {};
+    public: 
+        //! constructor with frame skip
+        HOOMDXMLTrajectory(double dt);
         
         //! default destructor
         virtual ~HOOMDXMLTrajectory() {};
@@ -31,6 +31,7 @@ class HOOMDXMLTrajectory : public Trajectory
         //! reads all attached files into Frame
         virtual void read();
     private:
+        const double m_xml_dt;                      //!< HOOMD XML simulation dt to convert to real time
         static float s_supported_hoomd_version;     //!< Flag for HOOMD support level
         
         //! internal method for reading a single HOOMD XML file into a Frame

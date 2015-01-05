@@ -10,6 +10,11 @@
 #include <sstream>
 #include <iostream>
 
+HOOMDXMLTrajectory::HOOMDXMLTrajectory(double dt)
+    : m_xml_dt(dt)
+    {
+    }
+
 /*!
  * Loops over all attached files and calls readFromFile(const std::string& f) on them.
  */
@@ -261,7 +266,7 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                 
             if (cur_frame)
                 {
-                cur_frame->setTime(config.attribute("time_step").as_double());
+                cur_frame->setTime(m_xml_dt*config.attribute("time_step").as_double());
                 cur_frame->setBox(box);                    
                 } 
             }
@@ -283,5 +288,5 @@ void export_HOOMDXMLTrajectory()
     {
     using namespace boost::python;
     class_<HOOMDXMLTrajectory, boost::shared_ptr<HOOMDXMLTrajectory>, bases<Trajectory>, boost::noncopyable>
-    ("HOOMDXMLTrajectory");
+    ("HOOMDXMLTrajectory",init<double>());
     }

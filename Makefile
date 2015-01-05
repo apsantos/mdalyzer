@@ -6,7 +6,7 @@ CXX := g++
 INSTALL_PATH := bin
 BUILD_PATH := build
 PYTHON_VERSION := 2.7
-PYTHON_PATH :=/usr/global/python/2.7.8/
+PYTHON_INCLUDE_PATH := /usr/global/python/2.7.8/include/python2.7/
 BOOST_PATH := /usr/global/boost/1_55_0/
 #####
 # end configuration
@@ -14,11 +14,9 @@ BOOST_PATH := /usr/global/boost/1_55_0/
 
 ### for compiling shared library libmdalyzer ###
 TARGET := libmdalyzer
-PYTHON_INCLUDE := -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION)
-BOOST_LIB := $(BOOST_PATH)/lib/
 CXXFLAGS := -fPIC -Wall -Wextra -pedantic -O3
 CFLAGS := $(CXXFLAGS) --std=c99
-LDFLAGS := -shared -Wl,-no-undefined,--export-dynamic -Wl,-soname,$(TARGET).so -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
+LDFLAGS := -shared -Wl,-no-undefined,--export-dynamic -Wl,-soname,$(TARGET).so -L$(BOOST_PATH)/lib -L$(BOOST_PATH)/lib64 -lboost_python -lpython$(PYTHON_VERSION)
 
 MODULES := analyzers extern data_structures python trajectories utils
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
@@ -27,7 +25,7 @@ BUILD_DIR := $(addprefix $(BUILD_PATH)/$(TARGET)/,$(MODULES)) $(BUILD_PATH)/test
 SRC_CXX := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
 SRC_CC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.c))
 OBJ := $(patsubst $(TARGET)/%.cc,$(BUILD_PATH)/$(TARGET)/%.o,$(SRC_CXX)) $(patsubst $(TARGET)/%.c, $(BUILD_PATH)/$(TARGET)/%.o,$(SRC_CC))
-INCLUDES := $(addprefix -I,$(SRC_DIR)) $(PYTHON_INCLUDE)
+INCLUDES := $(addprefix -I,$(SRC_DIR)) -I$(PYTHON_INCLUDE_PATH) -I$(BOOST_PATH)/include
 ### end shared library ###
 
 ### for compiling boost unit tests ###

@@ -64,6 +64,11 @@ void MeanSquaredDisplacement::evaluate()
         // error! there is no time data
         throw std::runtime_error("MeanSquaredDisplacement needs data on time");
         }
+    if (!frames[0]->hasTypes() || !m_traj->hasTypes())
+        {
+        // error! there is no time data
+        throw std::runtime_error("MeanSquaredDisplacement needs types");
+        }
     // set up the msd
     Vector3< std::vector< std::vector<float> > > msd;
     // if no types are specified, use all particles
@@ -216,7 +221,7 @@ void export_MeanSquaredDisplacement()
     {
     using namespace boost::python;
     class_<MeanSquaredDisplacement, boost::shared_ptr<MeanSquaredDisplacement>, bases<Analyzer>, boost::noncopyable >
-    ("MeanSquaredDisplacement", init< boost::shared_ptr<Trajectory>, const std::string&, const unsigned int& >())
+    ("MeanSquaredDisplacement", init< boost::shared_ptr<Trajectory>, const std::string&, unsigned int >())
     .def("addType",&MeanSquaredDisplacement::addType)
     .def("deleteType",&MeanSquaredDisplacement::deleteType);
     }

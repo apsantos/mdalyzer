@@ -24,14 +24,14 @@ class density(analyzer):
         self.types = []
         self.weight = True
         
-        if not isinstance(types, list):
+        if not isinstance(types, (list,tuple)):
             types = [types]
         self.add_type(types)
         self.mass_weight(weight)
     
     def add_type(self, types):
         """Add types to calculate"""
-        if not isinstance(types, list):
+        if not isinstance(types, (list,tuple)):
             types = [types]
             
         for t in types:
@@ -41,7 +41,7 @@ class density(analyzer):
     
     def delete_type(self, types):
         """Remove types to calculate"""
-        if not isinstance(types, list):
+        if not isinstance(types, (list,tuple)):
             types = [types]
             
         for t in types:
@@ -59,7 +59,20 @@ class density(analyzer):
         self.weight = weight
         self.cpp.useMassWeighting(self.weight)
     
+class clustering(analyzer):
+    """Clustering analysis"""
+    def __init__(self, traj, file_name='clustering.dat', distance=1.0, name=None):
+        analyzer.__init__(self, traj, file_name, name)
+        
+        self.distance = distance
+        self.cpp = libmdalyzer.Clustering(self.trajectory.cpp, self.file_name, self.distance)
+        self.trajectory.cpp.addCompute(self.cpp, self.name)
     
+    def set_distance(self, distance):
+        """Set interatomic distance defining particles in a cluster"""
+        self.distance = distance
+        self.cpp.setDistance(self.distance)
+
 class meanSquaredDisplacement(analyzer):
     """Density profile analyzer"""
     

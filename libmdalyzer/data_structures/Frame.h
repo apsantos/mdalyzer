@@ -1,16 +1,11 @@
-/*! \file Frame.h
- *  \author Michael P. Howard
- *  \brief Data structure for holding particle data at a given time in a simulation
+/*!
+ * \file Frame.h
+ * \author Michael P. Howard
+ * \date 29 December 2014
+ * \brief Declaration of Frame data structure
  */
 #ifndef MDALYZER_DATASTRUCTURES_FRAME_H_
 #define MDALYZER_DATASTRUCTURES_FRAME_H_
- 
-/*! \ingroup libmdalyzer
- * @{
- * \defgroup frames
- * \brief All implementations of the Frame data structure
- * @}
- */
 
 #include <stdexcept>
  
@@ -25,100 +20,128 @@
 
 class Trajectory; // forward declaration
 
-/*! \class Frame
+//! Frame data structure
+/*!
  *  The Frame is the fundamental data structure for a Trajectory (which is simply an array of Frames).
  *  Each Frame stores particle position, velocity, type, diameter, and mass as a SoA to improve cache coherency
- *  when calling Compute classes need only certain parts of the data. The Frame also holds the TriclinicBox defining
+ *  when calling Analyzer classes need only certain parts of the data. The Frame also holds the TriclinicBox defining
  *  the boundary of the simulations at a given time.
- *
- *  Accessor methods are provided for data, to be used by Compute classes to acquire read only handles to data.
- *  Inheriting classes should access the protected data members directly to avoid a memcopy.
- *  However, these classes must ensure that the appropriate boolean flags (e.g. m_has_positions) are also set. Each
- *  inheriting class is suggested, but not required, to set the number of particles in the frame.
- *
- *  \ingroup frames
  */
 class Frame : boost::noncopyable
     {
     public:
+        //! constructor for a frame of n particles
         Frame(unsigned int n);
+        
+        //! default destructor
         virtual ~Frame() {};
 
-        //! setters 
+        /* Setters */
+        //! set the snapshot time
         void setTime(double time)
             {
             m_time = time;
             m_has_time = true;
             }   
+        //! set the simulation box
         void setBox(const TriclinicBox& box)
             {
             m_box = box;
             m_has_box = true;
             }
+        //! set the positions from a list
         void setPositions(const std::vector< Vector3<double> >& positions);
+        //! set the position of a single particle
         void setPosition(unsigned int pid, const Vector3<double>& pos);
         
+        //! set the velocities from a list
         void setVelocities(const std::vector< Vector3<double> >& velocities);
+        //! set the velocity of a single particle
         void setVelocity(unsigned int pid, const Vector3<double>& vel);
         
+        //! set the names from a list
         void setNames(const std::vector<std::string>& names);
+        //! set the name of a single particle
         void setName(unsigned int pid, const std::string& name);
         
+        //! set the types from a list
         void setTypes(const std::vector<unsigned int>& types);
+        //! set the type of a single particle
         void setType(unsigned int pid, unsigned int type);
         
+        //! set the diameters from a list
         void setDiameters(const std::vector<double>& diams);
+        //! set the diameter of a single particle
         void setDiameter(unsigned int pid, double diam);
         
+        //! set the masses from a list
         void setMasses(const std::vector<double>& masses);
+        //! set the mass of a single particle
         void setMass(unsigned int pid, double mass);
 
-        //! getters
+        /* Getters */
+        //! get the number of particles
         unsigned int getN() const
             {
             return m_n_particles;
             }
-        unsigned int getNumByType(unsigned int type) const;
-        unsigned int getNumByName(const std::string& name) const;
+//         unsigned int getNumByType(unsigned int type) const;
+//         unsigned int getNumByName(const std::string& name) const;
         
+        //! get the snapshot time
         double getTime() const;
+        //! get the snapshot box
         const TriclinicBox& getBox() const;
+        //! get the list of positions
         const std::vector< Vector3<double> >& getPositions() const;
+        //! get the list of velocities
         const std::vector< Vector3<double> >& getVelocities() const;
+        //! get the list of names
         const std::vector<std::string>& getNames() const;
-        const std::vector<unsigned int> getTypes() const;
-        const std::vector<double> getDiameters() const;
-        const std::vector<double> getMasses() const;
+        //! get the list of types
+        const std::vector<unsigned int>& getTypes() const;
+        //! get the list of diameters
+        const std::vector<double>& getDiameters() const;
+        //! get the list of masses
+        const std::vector<double>& getMasses() const;
         
-        //! checkers
+        /* Checkers */
+        //! check if snapshot time is set
         bool hasTime()
             {
             return m_has_time;
             }
+        //! check if the snapshot box is set
         bool hasBox()
             {
             return m_has_box;
             }
+        //! check if the particle positions are set
         bool hasPositions()
             {
             return m_has_positions;
             }
+        //! check if the particle velocities are set
         bool hasVelocities()
             {
             return m_has_velocities;
             }
+        //! check if the particle names are set
         bool hasNames()
             {
             return m_has_names;
             }
+        //! check if the particle types are set
         bool hasTypes()
             {
             return m_has_types;
             }
+        //! check if the particle diameters are set
         bool hasDiameters()
             {
             return m_has_diameters;
             }
+        //! check if the particle masses are set
         bool hasMasses()
             {
             return m_has_masses;
@@ -137,15 +160,17 @@ class Frame : boost::noncopyable
         std::vector<double> m_diameters;                //!< Particle diameters
         std::vector<double> m_masses;                   //!< Particle masses
 
-        bool m_has_time;        
-        bool m_has_box;
-        bool m_has_positions;
-        bool m_has_velocities;
-        bool m_has_names;
-        bool m_has_types;
-        bool m_has_diameters;
-        bool m_has_masses;
+        bool m_has_time;        //!< Flag for time set
+        bool m_has_box;         //!< Flag for box set
+        bool m_has_positions;   //!< Flag for positions set
+        bool m_has_velocities;  //!< Flag for velocities set
+        bool m_has_names;       //!< Flag for names set
+        bool m_has_types;       //!< Flag for types set
+        bool m_has_diameters;   //!< Flag for diameters set
+        bool m_has_masses;      //!< Flag for masses set
     };
 
-void export_Frame();      
+//! Python export for Frame
+void export_Frame(); 
+     
 #endif //MDALYZER_DATASTRUCTURES_FRAME_H_

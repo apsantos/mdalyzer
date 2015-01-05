@@ -58,12 +58,12 @@ void DensityProfile::evaluate()
     {
     // read the frames and make sure there is a simulation box
     std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
-    if (!frames[0]->hasBox())
+    if (!m_traj->hasBox())
         {
         // error! box not found
         throw std::runtime_error("DensityProfile needs a simulation box in the first frame");
         }
-    TriclinicBox box = frames[0]->getBox();
+    TriclinicBox box = m_traj->getBox();
     Vector3<double> box_len = box.getLength();
     
     // reserve memory for density profile
@@ -99,11 +99,13 @@ void DensityProfile::evaluate()
     for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
         {
         boost::shared_ptr<Frame> cur_frame = frames[frame_idx];
-        TriclinicBox cur_box = cur_frame->getBox();
-        Vector3<double> cur_box_len = cur_box.getLength();
-        if (cur_box_len != box_len)
+        if (cur_frame->hasBox())
             {
-            throw std::runtime_error("Average DensityProfile cannot be computed with variable box size");
+            TriclinicBox cur_box = cur_frame->getBox();
+            if (cur_box.getLength() != box_len)
+                {
+                throw std::runtime_error("Average DensityProfile cannot be computed with variable box size");
+                }
             }
         
         if (!cur_frame->hasPositions())
@@ -263,7 +265,7 @@ void export_DensityProfile()
     {
     using namespace boost::python;
     class_<DensityProfile, boost::shared_ptr<DensityProfile>, bases<Analyzer>, boost::noncopyable >
-    ("DensityProfile", init< boost::shared_ptr<Trajectory>, const std::string&, Vector3<unsigned int>& >())
+    ("DensityProfile", init< boost::shared_ptr<Trajectory>, const std::string&, const Vector3<unsigned int>& >())
     .def("addType",&DensityProfile::addType)
     .def("deleteType",&DensityProfile::deleteType)
     .def("useMassWeighting",&DensityProfile::useMassWeighting);

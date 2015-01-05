@@ -18,17 +18,21 @@
 class Clustering : public Analyzer
     {
     public:
-        Clustering(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const double& atom_dist);
+        Clustering(boost::shared_ptr<Trajectory> traj, const std::string& file_name, double atom_dist);
         virtual ~Clustering() {};
         
         virtual void evaluate();
         
-
+        //! set the interatomic distance defining a cluster
+        /*! \param distance the distance to use between atoms */
+        void setDistance(double distance)
+            {
+            m_atom_dist_sq = distance*distance;
+            }
     private:
         std::string m_file_name;                    //!< Output file name
-        double m_atom_dist;                           //!< distance criterion (two atoms are regarded to be in one
-                                                    //   cluster if their distance is less than this value
-        
+        double m_atom_dist_sq;                      //!< distance sq criterion (two atoms are regarded to be in one
+                                                    //   cluster if their distance is less than this value  
     };
 
 void export_Clustering();

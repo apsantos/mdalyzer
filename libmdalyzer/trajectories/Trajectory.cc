@@ -95,22 +95,22 @@ void Trajectory::removeName(const std::string& name)
  * \param name particle name
  * \returns integer id for type
  */
-unsigned int Trajectory::getTypeByName(const std::string& name)
+unsigned int Trajectory::getTypeByName(const std::string& name) const
     {
-    std::map<std::string, unsigned int>::iterator cur_type = m_type_map.find(name);
+    std::map<std::string, unsigned int>::const_iterator cur_type = m_type_map.find(name);
     if (cur_type == m_type_map.end())
         throw std::runtime_error("Trajectory: name not found");
         
-    return m_type_map[name];
+    return cur_type->second;
     }
 
 /*!
  * \param type integer id for type
  * \returns name particle name
  */
-std::string Trajectory::getNameByType(unsigned int type)
+std::string Trajectory::getNameByType(unsigned int type) const
     {
-    std::map<std::string, unsigned int>::iterator cur_type;
+    std::map<std::string, unsigned int>::const_iterator cur_type;
     for (cur_type = m_type_map.begin(); cur_type != m_type_map.end(); ++cur_type)
         {
         if (cur_type->second == type)
@@ -154,6 +154,21 @@ void Trajectory::sortFrames()
  */    
 void Trajectory::read()
     {
+    }
+
+/*!
+ * \param f file name to attach
+ *
+ * Any time a new file is attached, the Trajectory must be re-read from file. This could be handled in a smart way
+ * flushing the read file list so that only newly added files are read, and not everything. This should be considered
+ * in read() in the future.
+ *
+ * \note error checking for duplicates is currently not enabled, but we will implement this soon.
+ */
+void Trajectory::addFile(const std::string& f)
+    {
+    m_must_read_from_file = true;
+    m_files.push_back(f); // error check this later
     }
 
 /*!
@@ -211,7 +226,6 @@ void Trajectory::parse()
     if (m_loc_names == NONE && m_frames[0]->hasNames())
         {
         m_loc_names = FRAME;
-        m_loc_types = FRAME;
         m_names = m_frames[0]->getNames();
         }
     
@@ -286,25 +300,34 @@ void Trajectory::analyze()
  * plain Trajectory classes in case in the future the user could attach Frame content on the scripting level without
  * using a reader, so read() cannot be pure virtual. This means that we must default to an empty read() implementation.
  */
-struct TrajectoryWrap : public Trajectory, boost::python::wrapper<Trajectory>
-    {
-    TrajectoryWrap() : Trajectory() {}
-    
-    void read()
-        {
-        if (boost::python::override f = this->get_override("read"))
-            f();
-        else
-            Trajectory::read();
-        }
-        
-    void default_read() { this->Trajectory::read(); }
-    };
+// struct TrajectoryWrap : public Trajectory, boost::python::wrapper<Trajectory>
+//     {
+//     TrajectoryWrap() : Trajectory() {}
+//     
+//     void read()
+//         {
+//         if (boost::python::override f = this->get_override("read"))
+//             f();
+//         else
+//             Trajectory::read();
+//         }
+//         
+//     void default_read() { this->Trajectory::read(); }
+//     
+//     void addFile(const std::string& file)
+//         {
+//         if (boost::python::override f = this->get_override("addFile"))
+//             f(file);
+//         else
+//             Trajectory::addFile(file);
+//         }
+//     void default_addFile(const std::string& file) { this->Trajectory::addFile(file); }
+//     };
 
 void export_Trajectory()
     {
     using namespace boost::python;
-    class_<Trajectory, boost::shared_ptr<Trajectory>, boost::noncopyable >("Trajectory", init<>())
+    class_<Trajectory, boost::shared_ptr<Trajectory>, boost::noncopyable>("Trajectory")
     .def("analyze",&Trajectory::analyze)
     .def("addCompute",&Trajectory::addAnalyzer)
     .def("removeCompute",&Trajectory::removeAnalyzer)
@@ -314,5 +337,6 @@ void export_Trajectory()
     .def("setNames",&Trajectory::setNames)
     .def("setDiameters",&Trajectory::setDiameters)
     .def("setMasses",&Trajectory::setMasses)
-    .def("read", &Trajectory::read, &TrajectoryWrap::default_read);
+    .def("read", &Trajectory::read)
+    .def("addFile", &Trajectory::addFile);
     }

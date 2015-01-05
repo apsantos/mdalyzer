@@ -1,7 +1,8 @@
 #####
 # user configurable options
 #####
-CC := g++
+CC := gcc
+CXX := g++
 INSTALL_PATH := bin
 BUILD_PATH := build
 PYTHON_VERSION := 2.7
@@ -11,38 +12,69 @@ BOOST_PATH := /usr/global/boost/1_55_0/
 # end configuration
 #####
 
-
+### for compiling shared library libmdalyzer ###
 TARGET := libmdalyzer
-PYTHON_INCLUDE := -I$(PYTHON_PATH)include/python$(PYTHON_VERSION)
-BOOST_LIB := $(BOOST_PATH)lib/
-CC_FLAGS := -fPIC -Wall -Wextra -pedantic
-LD_FLAGS := -shared -Wl,-no-undefined,--export-dynamic -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
+PYTHON_INCLUDE := -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION)
+BOOST_LIB := $(BOOST_PATH)/lib/
+CXXFLAGS := -fPIC -Wall -Wextra -pedantic -O3
+CFLAGS := $(CXXFLAGS) --std=c99
+LDFLAGS := -shared -Wl,-no-undefined,--export-dynamic -Wl,-soname,$(TARGET).so -L$(BOOST_LIB) -lboost_python -lpython$(PYTHON_VERSION)
 
 MODULES := analyzers extern data_structures python trajectories utils
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
-BUILD_DIR := $(addprefix $(BUILD_PATH)/,$(MODULES))
+BUILD_DIR := $(addprefix $(BUILD_PATH)/$(TARGET)/,$(MODULES)) $(BUILD_PATH)/test/unit
 
-SRC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
-OBJ := $(patsubst $(TARGET)/%.cc,build/%.o,$(SRC))
+SRC_CXX := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
+SRC_CC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.c))
+OBJ := $(patsubst $(TARGET)/%.cc,$(BUILD_PATH)/$(TARGET)/%.o,$(SRC_CXX)) $(patsubst $(TARGET)/%.c, $(BUILD_PATH)/$(TARGET)/%.o,$(SRC_CC))
 INCLUDES := $(addprefix -I,$(SRC_DIR)) $(PYTHON_INCLUDE)
+### end shared library ###
 
-vpath %.cc $(SRC_DIR)
+### for compiling boost unit tests ###
+TEST_TARGET := test_libmdalyzer
+TEST_SRC_DIR := test/unit
+TEST_SRC := $(wildcard $(TEST_SRC_DIR)/*.cc)
+TEST_OBJ := $(patsubst $(TEST_SRC_DIR)/%.cc,$(BUILD_PATH)/$(TEST_SRC_DIR)/%.o,$(TEST_SRC))
+TEST_CXXFLAGS := -Wall -Wextra -pedantic -O3
+TEST_LDFLAGS := -Wl,-rpath,$(dir $(abspath $(BUILD_PATH)/$(TARGET).so)) -L$(BUILD_PATH) -lmdalyzer
+### end unit test ###
 
+# set the path for cc and c files
+SEARCH_DIR := $(SRC_DIR) $(TEST_SRC_DIR)
+vpath %.cc $(SEARCH_DIR)
+vpath %.c $(SEARCH_DIR)
+
+# will be called to define make rules all subdirectories
 define make-goal
 $1/%.o: %.cc
-	$(CC) $(INCLUDES) $(CC_FLAGS) -c $$< -o $$@
+	$(CXX) $(INCLUDES) $(CXXFLAGS) -c $$< -o $$@
+$1/%.o: %.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c $$< -o $$@
 endef
 
-.PHONY: all checkdirs clean install
+.PHONY: all checkdirs clean install check
 
 all: checkdirs $(BUILD_PATH)/$(TARGET).so
-build/$(TARGET).so: $(OBJ)
-	$(CC) $(LD_FLAGS) $^ -o $@
+
+$(BUILD_PATH)/$(TARGET).so: $(OBJ)
+	$(CXX) $(LDFLAGS) $^ -o $@
+
+# check compiles and runs the boost and python unit tests
+check: checkdirs $(BUILD_PATH)/$(TARGET).so $(BUILD_PATH)/$(TEST_TARGET)
+	@echo ""
+	@echo ""
+	$(BUILD_PATH)/$(TEST_TARGET) --log_level=test_suite
+
+$(BUILD_PATH)/$(TEST_TARGET): $(TEST_OBJ)
+	$(CXX) $(TEST_LDFLAGS) $^ -o $@
+
+# recursively builds subdirectories as needed
 checkdirs: $(BUILD_DIR)
 
 $(BUILD_DIR):
 	@mkdir -p $@
 
+# cleanup the build objects and the python byte code
 clean:
 	@rm -rf $(BUILD_PATH)/*
 	@rm -rf $(INSTALL_PATH)/mdalyzer/*.pyc
@@ -52,5 +84,5 @@ install:
 	@cp $(BUILD_PATH)/$(TARGET).so $(INSTALL_PATH)/
 	@cp -r mdalyzer $(INSTALL_PATH)/
 
+# iteratively define build rules for subdirectories
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
-

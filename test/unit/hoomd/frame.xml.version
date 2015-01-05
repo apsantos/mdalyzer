@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<hoomd_xml version="0.9">
+	<configuration time_step="0" dimensions="3" vizsigma="1.5">
+		<box lx="11" ly="5" lz="8" />
+        <position num="2">
+        1.0 2.0 3.0
+        -3.0 -2.0 -1.0
+        </position>
+	</configuration>
+</hoomd_xml>

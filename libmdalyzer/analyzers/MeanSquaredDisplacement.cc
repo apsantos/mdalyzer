@@ -15,7 +15,7 @@
 
 #include <boost/python.hpp>
 
-MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const unsigned int&  origins)
+MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, unsigned int  origins)
     : Analyzer(traj), m_file_name(file_name), m_origins(origins)
     {
     m_type_names.reserve(m_traj->getNumTypes());
@@ -70,13 +70,13 @@ void MeanSquaredDisplacement::evaluate()
         throw std::runtime_error("MeanSquaredDisplacement needs types");
         }
     // set up the msd
-    Vector3< std::vector< std::vector<float> > > msd;
+    Vector3< std::vector< std::vector<double> > > msd;
     // if no types are specified, use all particles
     unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); 
     // zero the msd values and time counter
-    msd.x.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
-    msd.y.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
-    msd.z.resize(type_size, std::vector<float>( frames.size(), 0.0 ));
+    msd.x.resize(type_size, std::vector<double>( frames.size(), 0.0 ));
+    msd.y.resize(type_size, std::vector<double>( frames.size(), 0.0 ));
+    msd.z.resize(type_size, std::vector<double>( frames.size(), 0.0 ));
 
     std::vector<unsigned int> type;
     type = m_traj->getTypes();
@@ -142,7 +142,7 @@ void MeanSquaredDisplacement::evaluate()
  * \param msd Vector3 struct of 2D vector (particle type, time)
  * \param ntime Histogram of the instances a time bin was visited in the MSD evaluation
  */    
-void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<float> > >& msd, const std::vector<unsigned int>& ntime)
+void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<double> > >& msd, const std::vector<unsigned int>& ntime)
     {
     // read the frames and make sure there is time data
     std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
@@ -151,13 +151,13 @@ void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<flo
     unsigned int type_size = std::max((int)m_traj->getNumTypes(),1); 
 
     std::vector<unsigned int> type;
-    if (frames[0]->hasTypes())
-        {
-        type = frames[0]->getTypes();
-        }
-    else if (m_traj->hasTypes())
+    if (m_traj->hasTypes())
         {
         type = m_traj->getTypes();
+        }
+    else
+        {
+        throw std::runtime_error("MeanSquaredDisplacement needs types");
         }
 
     std::vector<unsigned int> type_map(m_type_names.size());

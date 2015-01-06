@@ -5,3 +5,5 @@ bin*
 doc/*.aux
 doc/*.log
 doc/*.synctex.gz
+doc/user
+doc/dev

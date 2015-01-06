@@ -22,7 +22,8 @@
 class DCDTrajectory : public Trajectory
     {
     public:
-        DCDTrajectory(boost::shared_ptr<Trajectory> initial_traj, const std::string& fileName);
+        DCDTrajectory(boost::shared_ptr<Trajectory> initial_traj, 
+                     const std::string& fileName, double time_step, unsigned int dcd_freq);
         virtual ~DCDTrajectory() {};
         virtual void read();
         void readFromFile();
@@ -35,18 +36,17 @@ class DCDTrajectory : public Trajectory
 
         /// Variables used to call C ReadDCD.cc functions
         int m_n_dcdparticles_c;         //!< num of particles in the dcd file
-        int m_n_frames_c;               //!< num of frames in dcd file
         int *m_freeparticles_c;         //!< particles that change position over time
         int m_reverse_endian_c;         //!< Flag for reversing binary endiaism; i.e. how do you crack you eggs?
         int m_n_fixed_c;                //!< num of fixed particles (i.e. zeolite)
         int m_charmm_flags_c;           //!< flags for what information is available
         int m_first_dcdread;            //!< is the dcd file opened?
-        int m_frame_start_c;            //!< starting frame for reading
         
-        double m_time_step;             //!< timestep in the dcd
+        double m_time_step;             //!< user defined dcd timestep 
+        double m_dcd_freq;              //!< user defined number of steps between coordinates
         unsigned int m_n_dcdparticles;   
         unsigned int m_n_frames;
-        unsigned int m_frame_start;            //!< starting frame for reading
+        unsigned int m_frame_start;     //!< starting frame for reading
         
     };
 

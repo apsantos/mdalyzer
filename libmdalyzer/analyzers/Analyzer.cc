@@ -1,3 +1,8 @@
+/*!
+ * \file Analyzer.cc
+ * \author Michael P. Howard
+ * \brief Parent of the derived analyzers
+ */
 #include "Analyzer.h"
 
 #include <boost/python.hpp>
@@ -8,7 +13,8 @@ Analyzer::Analyzer(boost::shared_ptr<Trajectory> traj)
     }
 
 /*!
- * Boost needs us to define a wrapper around compute
+ * Wrapper around each compute.
+ * Requred for Boost.
  */
 struct AnalyzerWrap : public Analyzer, boost::python::wrapper<Analyzer>
     {
@@ -16,7 +22,7 @@ struct AnalyzerWrap : public Analyzer, boost::python::wrapper<Analyzer>
     
     void evaluate()
         {
-        this->get_override("evaluate")();
+        this->get_override("evaluate")();   //!< Overide evaluate function for each analyzer
         }
     };
 

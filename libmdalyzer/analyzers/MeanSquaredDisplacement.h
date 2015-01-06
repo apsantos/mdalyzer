@@ -13,7 +13,7 @@
 
 /*!
  *
- * \ingroup Analyzer
+ * \ingroup analyzers
  */
 class MeanSquaredDisplacement : public Analyzer
     {

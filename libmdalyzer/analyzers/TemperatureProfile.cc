@@ -1,3 +1,8 @@
+/*!
+ * \file TemperatureProfile.cc
+ * \author Micheal P. Howard
+ * \brief Declaration of TemperatureProfile Analyzer 
+ */
 #include "TemperatureProfile.h"
 #include "Trajectory.h"
 #include "Frame.h"
@@ -9,12 +14,29 @@
 
 #include <boost/python.hpp>
 
+/*! \ingroup libmdalyzer
+ * @{
+ * \defgroup analyzers
+ * \brief Calculate temperature profile 
+ * @}
+ */
+
+/*! 
+ * \brief TemperatureProfile constructor
+ * \param traj Boost shared_ptr to a Trajectory object
+ * \param file_name output file name .dat will be appended
+ * \param bins user-defined spacing of bins which space is divided
+ */
 TemperatureProfile::TemperatureProfile(boost::shared_ptr<Trajectory> traj, const std::string& file_name, const Vector3<unsigned int>& bins)
     : Analyzer(traj), m_file_name(file_name), m_bins(bins)
     {
     m_type_names.reserve(m_traj->getNumTypes());
     }
 
+/*! 
+ * \brief Add a particle type to the DensityProfile Analyzer
+ * \param name Particle type name
+ */
 void TemperatureProfile::addType(const std::string& name)
     {
     std::vector<std::string>::iterator name_it = std::find(m_type_names.begin(), m_type_names.end(), name);
@@ -23,6 +45,11 @@ void TemperatureProfile::addType(const std::string& name)
         m_type_names.push_back(name);
         }
     }
+
+/*! 
+ * \brief Remove a particle type to the DensityProfile Analyzer
+ * \param name Particle type name
+ */
 void TemperatureProfile::deleteType(const std::string& name)
     {
     std::vector<std::string>::iterator name_it = std::find(m_type_names.begin(), m_type_names.end(), name);
@@ -36,6 +63,11 @@ void TemperatureProfile::deleteType(const std::string& name)
         }
     }
 
+/*! 
+ * \brief Write the header of the output file
+ * \param direction cartesian direction (x, y or z)
+ * \param outf fstream output file object
+ */
 inline void TemperatureProfile::writeHeader(const std::string& direction, std::ofstream& outf) const
     {
     // output header
@@ -54,10 +86,14 @@ inline void TemperatureProfile::writeHeader(const std::string& direction, std::o
     outf<<std::endl;
     }
 
+/*! 
+ * \brief Main TemperatureProfile routine
+ */
 void TemperatureProfile::evaluate()
     {
-    // read the frames and make sure there is a simulation box
+    // read the frames 
     std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
+    //! Check if there is a simulation box; throw an exception if there is not one
     if (!m_traj->hasBox())
         {
         // error! box not found
@@ -129,7 +165,7 @@ void TemperatureProfile::evaluate()
             }
         }
     
-    // build the density profiles
+    //! build the temperature profiles
     for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
         {
         boost::shared_ptr<Frame> cur_frame = frames[frame_idx];
@@ -173,7 +209,7 @@ void TemperatureProfile::evaluate()
             mass = m_traj->getMasses();
             }
         
-        // clear out the frame counters
+        //! clear out the frame counters
         for (unsigned int i=0; i < reserve_size; ++i)
             {
             if (m_bins.x > 0)
@@ -198,9 +234,10 @@ void TemperatureProfile::evaluate()
             // check if this atom is one of our types
             unsigned int type_idx_i = (m_type_names.size() > 0 && m_traj->hasTypes()) ? type[i] : 0;
             
-            // we do a wrap of the positions back into an orthorhombic box that ensures they lie on [0,L)
-            // since we are not in the business of doing triclinic temperature profiles. This ensures that the
-            // bin we floor will be in the right range
+            /*! Wrap the positions back into an orthorhombic box that ensures they lie on [0,L)
+             * since we are not in the business of doing triclinic density profiles. This ensures that the
+             * bin we floor will be in the right range
+             */
             Vector3<double> cur_pos = pos[i];
             const double cur_two_ke = mass[i]*vel[i].dot(vel[i]);
             if (m_bins.x > 0)
@@ -224,7 +261,7 @@ void TemperatureProfile::evaluate()
                 }
             }
         
-        // normalize and bin for the frame
+        //! normalize and bin for the frame
         for (unsigned int i=0; i < reserve_size; ++i)
             {
             for (unsigned int cur_bin=0; cur_bin < m_bins.x; ++cur_bin)
@@ -242,7 +279,7 @@ void TemperatureProfile::evaluate()
             }
         }
     
-    // handle output
+    //! handle output to file
     
     // map the string types to indices so we know which to grab
     std::vector<unsigned int> type_map(m_type_names.size());
@@ -339,6 +376,7 @@ void TemperatureProfile::evaluate()
         }
     }
     
+//! Export TemperatureProfile Analyzer to Python module
 void export_TemperatureProfile()
     {
     using namespace boost::python;

@@ -104,7 +104,7 @@ class clustering(analyzer):
         self.cpp.setDistance(self.distance)
 
 class msd(analyzer):
-    """Density profile analyzer"""
+    """Mean Squared Displacement analyzer"""
     
     def __init__(self, traj, file_name='msd', origins=1, name=None, types=[]):
         analyzer.__init__(self, traj, file_name, name)

@@ -13,7 +13,7 @@
 
 /*!
  *
- * \ingroup computes
+ * \ingroup analyzers
  */
 class Clustering : public Analyzer
     {

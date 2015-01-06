@@ -68,7 +68,7 @@ class dcd(trajectory):
        Make sure that all other trajectory classes preceed the dcd class, 
        as it depends on all others
     """
-    def __init__(self, dcd_file, i_file, i_type=None, precision=3, time_step=1.0):
+    def __init__(self, dcd_file, i_file, i_type=None, precision=3, time_step=0, freq=0):
         self.traj_types = {
                 'HOOMDXML':libmdalyzer.HOOMDXMLTrajectory(time_step), 
                 'XML':libmdalyzer.HOOMDXMLTrajectory(time_step),
@@ -112,7 +112,7 @@ class dcd(trajectory):
             if (self.i_type==None):
                     self._notAtype()
 
-        self.cpp = libmdalyzer.DCDTrajectory(self.i_file_ptr, self.dcd_file)
+        self.cpp = libmdalyzer.DCDTrajectory(self.i_file_ptr, self.dcd_file, time_step, freq)
 
     def _notAtype(self) :
         err_str = ('The file type \'%s\' does not exist. Maybe you meant one of these:\n' % self.i_type)

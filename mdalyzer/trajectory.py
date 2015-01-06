@@ -69,54 +69,50 @@ class dcd(trajectory):
        as it depends on all others
     """
     def __init__(self, dcd_file, i_file, i_type=None, precision=3, time_step=0, freq=0):
-        self.traj_types = {
-                'HOOMDXML':libmdalyzer.HOOMDXMLTrajectory(time_step), 
-                'XML':libmdalyzer.HOOMDXMLTrajectory(time_step),
-                'xml':libmdalyzer.HOOMDXMLTrajectory(time_step),
-                'GRO':libmdalyzer.GROTrajectory(precision),
-                'gro':libmdalyzer.GROTrajectory(precision),
-                'PDB':libmdalyzer.PDBTrajectory(time_step),
-                'pdb':libmdalyzer.PDBTrajectory(time_step),
-                'XYZ':libmdalyzer.XYZTrajectory(),
-                'xyz':libmdalyzer.XYZTrajectory()}
         self.dcd_file = dcd_file
         self.i_file = i_file
         self.i_file_ptr = None
+        if (i_type == None):
+            i_type = self.parseFileName()
         self.i_type = i_type
-        if (i_type != None):
-            if ( self.i_type in self.traj_types ):
-                # loop over the avilable formats
-                for t_type in self.traj_types:
-                    if ( t_type.lower() == self.i_type.lower() ):
-                        # create pointer to that trajectory
-                        self.i_file_ptr = self.traj_types[t_type]
-                        # add the file frame to that pointer
-                        self.i_file_ptr.addFile(i_file)
-
-            # if type is incompatible   
-            else:
-                self._notAtype()
-
-        else:
-            extension = self.i_file.split('.')
-            # loop over the avilable formats
-            for t_type in self.traj_types:
-                if ( t_type.lower() in extension ):
-                    self.i_type = t_type.lower()
-                    # create pointer to that trajectory
-                    self.i_file_ptr = self.traj_types[t_type]
-                    # add the file frame to that pointer
-                    self.i_file_ptr.addFile(i_file)
-
-                # if type is incompatible   
-            if (self.i_type==None):
-                    self._notAtype()
+        # create pointer to that trajectory
+        self.i_file_ptr = self.getTraj(i_type, time_step, precision)
+        # add the file frame to that pointer
+        self.i_file_ptr.addFile(i_file)
 
         self.cpp = libmdalyzer.DCDTrajectory(self.i_file_ptr, self.dcd_file, time_step, freq)
 
-    def _notAtype(self) :
+    def _notAtype(self):
         err_str = ('The file type \'%s\' does not exist. Maybe you meant one of these:\n' % self.i_type)
         for t_type in self.traj_types:
             err_str += (t_type + " ")
         raise RuntimeError(err_str)
+
+    def parseFileName(self):
+        self.traj_types = ['HOOMDXML','XML', 'xml',
+                           'GRO', 'gro',
+                           'PDB', 'pdb',
+                           'XYZ', 'xyz']
+        extension = self.i_file.split('.')
+        for t_type in self.traj_types:
+            if ( t_type in extension ):
+                return t_type
+        self._notAtype
+        return None
+
+    def getTraj(self, t_type, time_step, precision):
+        if ( t_type in ['HOOMDXML', 'XML', 'xml'] ):
+            return libmdalyzer.HOOMDXMLTrajectory(time_step)
+
+        elif ( t_type in ['GRO', 'gro'] ):
+            return libmdalyzer.GROTrajectory(precision)
+
+        elif ( t_type in ['PDB', 'pdb'] ):
+            return libmdalyzer.PDBTrajectory(time_step)
+
+        elif ( t_type in ['XYZ', 'xyz'] ):
+            return libmdalyzer.XYZTrajectory()
         
+        else :
+            self._notAtype()
+

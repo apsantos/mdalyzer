@@ -50,7 +50,7 @@ $1/%.o: %.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c $$< -o $$@
 endef
 
-.PHONY: all checkdirs clean install check
+.PHONY: all checkdirs clean install check doc
 
 all: checkdirs $(BUILD_PATH)/$(TARGET).so
 
@@ -81,6 +81,9 @@ install: all
 	@mkdir -p $(INSTALL_PATH)
 	@cp $(BUILD_PATH)/$(TARGET).so $(INSTALL_PATH)/
 	@cp -r mdalyzer $(INSTALL_PATH)/
+
+doc:
+	@doxygen doc/Doxyfile_user.in
 
 # iteratively define build rules for subdirectories
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))

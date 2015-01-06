@@ -289,7 +289,36 @@ class clustering(analyzer):
         self.distance = distance
         self.cpp.setDistance(self.distance)
 
+## Computes the averaged mean-squared displacement
+# 
+# Mean-squared displacement \f$ \mathrm{r}(t)^2 \f$ is useful for calculating the diffusion coefficient of a particle.
+# In three dimensions, for long times
+# \f[ \langle \mathrm{r}(t)^2 \rangle \sim 6Dt\f]
+# where \f$ D \f$ is the diffusion coefficient.
+#
+# analyzer.msd calculates the mean-squared displacement for specified particle types, averaging over particles and multiple
+# time origins.
+#
+# \warning The mean-squared displacement must be calculated from the \a true positions of particles, \b not their
+# periodic images. The data supplied must be unwrapped, or in a format that can be unwrapped (\a e.g. trajectory.hoomd).
 class msd(analyzer):
+    ## Initialize a mean-squared displacement calculator
+    # \param traj Python trajectory to attach to
+    # \param file_name the full file name to output
+    # \param origins the skip between frames for time origins (1 = every frame)
+    # \param name (if set) unique string name for the analyzer
+    # \param types the particle types to analyze
+    #
+    # \b Examples:
+    # \code
+    # # use every frame as a time origin for type A
+    # analyzer.msd(traj=my_traj, types='A')
+    #
+    # # use every fifth frame as an origin for types A and C
+    # analyzer.msd(traj=my_traj, types=['A','C'], origins=5)
+    # \endcode
+    #
+    # \note At least one type must be set when mdalyzer.trajectory.analyze() is called
     def __init__(self, traj, file_name='msd', origins=1, name=None, types=[]):
         analyzer.__init__(self, traj, file_name, name)
         self.origins = origins
@@ -300,7 +329,20 @@ class msd(analyzer):
         self.types = []
         
         self.add_type(types)
-    
+        
+    ## Add a type to the calculation
+    # \param types String or Python list of types to attach
+    #
+    # \b Examples:
+    # \code
+    # msd = analyzer.msd(traj=my_traj)
+    #
+    # # add a single type
+    # msd.add_type('A')
+    #
+    # # add multiple types
+    # msd.add_type(['B','C'])
+    # \endcode    
     def add_type(self, types):
         if not isinstance(types, (list,tuple)):
             types = [types]
@@ -309,7 +351,20 @@ class msd(analyzer):
             if t not in self.types:
                 self.types += [t]
                 self.cpp.addType(t)
-    
+                
+    ## Remove a type from the calculation
+    # \param types String or Python list of types to remove
+    #
+    # \b Examples:
+    # \code
+    # msd = analyzer.msd(traj=my_traj, types=['A','B','C'])
+    #
+    # # remove a single type
+    # msd.delete_type('A')
+    #
+    # # remove multiple types
+    # msd.delete_type(['B','C'])
+    # \endcode    
     def delete_type(self, types):
         if not isinstance(types, (list,tuple)):
             types = [types]

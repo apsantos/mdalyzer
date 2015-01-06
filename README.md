@@ -8,6 +8,7 @@ Code is tested to compile under (and requires):
 * gcc
 * Boost >= 1.55.0
 * Python 2.7
+* Doxygen 1.8.2 (optional)
 
 To install, configure the first four lines of the Makefile to set:
 * `CC = g++` (compiler)

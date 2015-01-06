@@ -16,8 +16,6 @@
 #include "HOOMDXMLTrajectory.h"
 
 #include <boost/shared_ptr.hpp>
-#include <vector>
-#include <string>
 
 BOOST_AUTO_TEST_SUITE(DCD)
 //! test all information is read from a single frame

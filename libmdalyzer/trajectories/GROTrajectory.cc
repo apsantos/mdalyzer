@@ -11,28 +11,15 @@
 #include <boost/python.hpp>
 #include <fstream>
 #include <sstream>
-
-GROTrajectory::GROTrajectory()
-    {
-    m_gro_parse_string = "%*5d%*5s%5s%5d%8lf%8lf%8lf%8lf%8lf%8lf";
-    m_gro_line_length = 61; // 4x5 + 5x8 + 1 (minimum length to read all these numbers)
-    }
+#include <cstdlib>
 
 /*!
  * \param precision number of decimal places in the positions
  */
 GROTrajectory::GROTrajectory(unsigned int precision)
+    : m_n_gro_digits(precision+5)
     {
-    std::ostringstream fmt_stm;
-    fmt_stm << "%*5d%*5s%5s%5d";
-    // add all 6 components for position and momentum
-    for (unsigned int i=0; i < 6; ++ i)
-        {
-        fmt_stm << "%" << (precision+5) << "lf";
-        }
-    
-    m_gro_parse_string = fmt_stm.str();
-    m_gro_line_length = 21 + 5*(precision+5); // 4x5 + 5*(chars in pos/vel) + 1 = minimum
+    m_gro_line_length = 21 + 5*m_n_gro_digits; // 4x5 + 5*(chars in pos/vel) + 1 = minimum
     }
 
 /*!
@@ -115,32 +102,32 @@ void GROTrajectory::readFromFile(std::ifstream& file)
             
         // loop on particles now
         unsigned int cur_particle(0);
+        bool auto_number = false;
         while (cur_particle < cur_frame->getN() && getline(file,line))
             {
-            if (line.length() < m_gro_line_length)
-                {
-                throw std::runtime_error("GROTrajectory: particle line does not adhere to minimum gro fomatting");
-                }
-            
-            // extract the particle data using the fixed column gro format
-            Vector3<double> pos_i, vel_i;
+            std::string name_i;
             int particle_id(-1);
-            char name[6];
-            sscanf(line.c_str(), m_gro_parse_string.c_str(),
-                   name, &particle_id, &pos_i.x, &pos_i.y, &pos_i.z, &vel_i.x, &vel_i.y, &vel_i.z);
+            Vector3<double> pos_i, vel_i;
+            readLine(line,name_i,particle_id,pos_i,vel_i);
             
             // gro is indexed 1 to N, so must decrement by 1
-            if (particle_id > 0 && particle_id <= (int)cur_frame->getN())
+            if (!auto_number && (particle_id > 0 && particle_id <= (int)cur_frame->getN()))
                 {
                 --particle_id;
                 }
+            else if (auto_number || (cur_particle == 0 && particle_id == 0))
+                {
+                // auto numbering can only be switched on from the first particle
+                // switch on auto numbering if labels are not present
+                particle_id = cur_particle;
+                auto_number = true;
+                // should warn the user
+                }
             else
                 {
-                throw std::runtime_error("GROTrajectory: particle id runs 1 to N");
+                throw std::runtime_error("GROTrajectory: particle ids run 1 to N");
                 }
             
-            // if name is not empty, set it
-            std::string name_i(name);
             if (name_i.length() > 0)
                 {
                 cur_frame->setName(particle_id, name_i);
@@ -167,7 +154,10 @@ void GROTrajectory::readFromFile(std::ifstream& file)
             line_parser.clear();
             
             Vector3<double> v1,v2,v3;
-            line_parser >> v1.x >> v2.y >> v3.z;
+            if( !(line_parser >> v1.x >> v2.y >> v3.z ) )
+                {
+                throw std::runtime_error("GROTrajectory: box must be specified");
+                }
             
             // nested check for the quantities, since we only need to check for more if they exist
             if (line_parser >> v1.y)
@@ -202,9 +192,46 @@ void GROTrajectory::readFromFile(std::ifstream& file)
         }
     }
 
+inline void GROTrajectory::readLine(const std::string& line,
+                                    std::string& name,
+                                    int& particle_id,
+                                    Vector3<double>& pos,
+                                    Vector3<double>& vel) const
+    {
+    
+    if (line.length() < m_gro_line_length)
+        {
+        throw std::runtime_error("GROTrajectory: particle line does not adhere to minimum gro fomatting");
+        }
+    
+    // extract the particle data using the fixed column gro format
+    name = line.substr(10,5);
+    boost::algorithm::trim(name);
+    
+    particle_id = atoi(line.substr(15,5).c_str());
+            
+    unsigned int extract = 20;
+    pos.x = strtod(line.substr(extract, m_n_gro_digits).c_str(), NULL);
+    extract += m_n_gro_digits;
+    
+    pos.y = strtod(line.substr(extract, m_n_gro_digits).c_str(), NULL);
+    extract += m_n_gro_digits;
+    
+    pos.z = strtod(line.substr(extract, m_n_gro_digits).c_str(), NULL);
+    extract += m_n_gro_digits;
+    
+    vel.x = strtod(line.substr(extract, m_n_gro_digits).c_str(), NULL);
+    extract += m_n_gro_digits;
+    
+    vel.y = strtod(line.substr(extract, m_n_gro_digits).c_str(), NULL);
+    extract += m_n_gro_digits;
+    
+    vel.z = strtod(line.substr(extract, m_n_gro_digits).c_str(), NULL);
+    }
+
 void export_GROTrajectory()
     {
     using namespace boost::python;
-    class_<GROTrajectory, boost::shared_ptr<GROTrajectory>, bases<Trajectory>, boost::noncopyable>("GROTrajectory")
-    .def(init<unsigned int>());
+    class_<GROTrajectory, boost::shared_ptr<GROTrajectory>, bases<Trajectory>, boost::noncopyable>
+    ("GROTrajectory", init<unsigned int>());
     }

@@ -13,7 +13,7 @@
 
 /*!
  *
- * \ingroup computes
+ * \ingroup analyzers
  */
 class DensityProfile : public Analyzer
     {
@@ -37,7 +37,6 @@ class DensityProfile : public Analyzer
         std::vector<std::string> m_type_names;      //!< List of type names to compute on
         
         bool m_mass_weighted;                       //!< Mass (true) or number (false) averaged density
-        bool m_total_density;                       //!< Compute density of all components
         
         inline void writeHeader(const std::string& direction, std::ofstream& outf) const;
     };

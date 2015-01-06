@@ -16,6 +16,7 @@
 
 #include "Analyzer.h"
 #include "DensityProfile.h"
+#include "TemperatureProfile.h"
 #include "MeanSquaredDisplacement.h"
 #include "Clustering.h"
 
@@ -53,6 +54,7 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     // analyzers
     export_Analyzer();
     export_DensityProfile();
+    export_TemperatureProfile();
     export_MeanSquaredDisplacement();
     export_Clustering();
     }

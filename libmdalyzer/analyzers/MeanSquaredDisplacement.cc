@@ -2,7 +2,6 @@
  * \file MeanSquaredDisplacement.cc
  * \author Andrew P. Santos
  * \brief Mean Squared Displacement of Particles Analyzer
- * \todo test the functions
  * \ingroup Analyzer
  */
 #include "MeanSquaredDisplacement.h"
@@ -14,8 +13,20 @@
 #include <algorithm>
 
 #include <boost/python.hpp>
+/*! \ingroup libmdalyzer
+ * @{
+ * \defgroup analyzers
+ * \brief Calculate the mean squared displacement of all or groups of particles
+ * @}
+ */
 
-MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, unsigned int  origins)
+/*! 
+ * \brief DensityProfile constructor
+ * \param traj Boost shared_ptr to a Trajectory object
+ * \param file_name output file name .dat will be appended
+ * \param origins user-defined number of timesteps between each time origin
+ */
+MeanSquaredDisplacement::MeanSquaredDisplacement(boost::shared_ptr<Trajectory> traj, const std::string& file_name, unsigned int origins)
     : Analyzer(traj), m_file_name(file_name), m_origins(origins)
     {
     m_type_names.reserve(m_traj->getNumTypes());
@@ -49,7 +60,7 @@ void MeanSquaredDisplacement::deleteType(const std::string& name)
         }
     }
 
-/*!
+/*! \breif Main routine for MeanSquaredDisplacement algorithm
  * Uses time origins to calculate the mean squared disp. of particles of like types
  * using user-defined time origins.  Algorithm is based on Frenkel and Smit's 
  * "Understanding Molecular Simulation". 
@@ -57,7 +68,7 @@ void MeanSquaredDisplacement::deleteType(const std::string& name)
 void MeanSquaredDisplacement::evaluate()
     {
 
-    // read the frames and make sure there is time data
+    //! read the frames and make sure there is time and type data
     std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
     if (!frames[0]->hasTime())
         {
@@ -94,6 +105,7 @@ void MeanSquaredDisplacement::evaluate()
     for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
         {
         boost::shared_ptr<Frame> cur_frame = frames[frame_idx];
+        //! Check if Frames have postions; throw an exception if not
         if (!cur_frame->hasPositions())
             {
             throw std::runtime_error(
@@ -101,7 +113,7 @@ void MeanSquaredDisplacement::evaluate()
             }
         std::vector< Vector3<double> > pos = cur_frame->getPositions();
 
-        // save time origins
+        //! save time origins
         if ( frame_idx % m_origins == 0 )
             {
             time0.push_back(frame_idx);
@@ -113,7 +125,7 @@ void MeanSquaredDisplacement::evaluate()
             unsigned int delta_t = frame_idx - time0[tau];
             if ( delta_t < frames.size() )
                 {
-                // count occurances each corrected timestep is passed
+                //! count occurances each corrected timestep is passed
                 ++ntime[delta_t] ;
 
                 boost::shared_ptr<Frame> origin_frame = frames[time0[tau]];
@@ -198,6 +210,7 @@ void MeanSquaredDisplacement::write( const Vector3< std::vector< std::vector<dou
         }
     }
 
+//! Export MeanSquaredDisplacement Analyzer to Python module
 void export_MeanSquaredDisplacement()
     {
     using namespace boost::python;

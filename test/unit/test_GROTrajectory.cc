@@ -54,7 +54,6 @@ BOOST_AUTO_TEST_CASE(GRO_read_multiframes_singlefile)
 
 BOOST_AUTO_TEST_CASE(GRO_exceptions)
     {
-    BOOST_TEST_MESSAGE("Testing exception throws of GROTrajectory, expect 7 output messages");
     // file not found
         {
         GROTrajectory traj(3);

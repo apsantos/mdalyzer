@@ -68,7 +68,6 @@ BOOST_AUTO_TEST_CASE(HOOMDXML_read_only_velocity)
 //! test exceptions are thrown for badly formed xml
 BOOST_AUTO_TEST_CASE(HOOMDXML_exceptions)
     {
-    BOOST_TEST_MESSAGE("Testing exception throws of HOOMDXMLTrajectory, expect 6 output messages");
     // file not found
         {
         HOOMDXMLTrajectory traj(1.0);

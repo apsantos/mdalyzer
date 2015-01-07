@@ -9,15 +9,15 @@ from mdalyzer import *
 
 ##
 # \brief Test suite for PDB trajectory Python commands
-class trajectory_hoomd_tests(unittest.TestCase):
+class trajectory_pdb_tests(unittest.TestCase):
     ##
     # \brief test constructors
     def test_init(self):
         trajectory.pdb()
         trajectory.pdb(time_step=0.1)
         
-        t = trajectory.pdb(files='test/unit/gro/frame.pdb.1')
+        t = trajectory.pdb(files='test/unit/pdb/frame.pdb.1')
         t.analyze()
         
-        t = trajectory.pdb(files=['test/unit/gro/frame.pdb.1','test/unit/gro/frame.pdb.2'])
+        t = trajectory.pdb(files=['test/unit/pdb/frame.pdb.1','test/unit/pdb/frame.pdb.2'])
         t.analyze()

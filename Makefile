@@ -30,11 +30,15 @@ INCLUDES := $(addprefix -I,$(SRC_DIR)) -I$(PYTHON_INCLUDE_PATH) -I$(BOOST_PATH)/
 
 ### for compiling boost unit tests ###
 TEST_TARGET := test_libmdalyzer
-TEST_SRC_DIR := test/unit
+TEST_DIR := test
+TEST_SRC_DIR := $(TEST_DIR)/unit
 TEST_SRC := $(wildcard $(TEST_SRC_DIR)/*.cc)
 TEST_OBJ := $(patsubst $(TEST_SRC_DIR)/%.cc,$(BUILD_PATH)/$(TEST_SRC_DIR)/%.o,$(TEST_SRC))
 TEST_CXXFLAGS := -Wall -Wextra -pedantic -O3
 TEST_LDFLAGS := -Wl,-rpath,$(dir $(abspath $(BUILD_PATH)/$(TARGET).so)) -L$(BUILD_PATH) -lmdalyzer
+
+TEST_PYTHON_TARGET := test_mdalyzer.py
+TEST_PYTHON_MODULE := $(TEST_DIR)/mdalyzer
 ### end unit test ###
 
 # set the path for cc and c files
@@ -50,18 +54,23 @@ $1/%.o: %.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c $$< -o $$@
 endef
 
-.PHONY: all checkdirs clean install check doc
+.PHONY: all checkdirs clean install check doc py
 
 all: checkdirs $(BUILD_PATH)/$(TARGET).so
+	@cp -r mdalyzer $(BUILD_PATH)
 
 $(BUILD_PATH)/$(TARGET).so: $(OBJ)
 	$(CXX) $(LDFLAGS) $^ -o $@
 
 # check compiles and runs the boost and python unit tests
 check: all $(BUILD_PATH)/$(TEST_TARGET)
+	@cp -r $(TEST_PYTHON_MODULE) $(BUILD_PATH)/$(TEST_DIR)
+	@cp $(TEST_DIR)/$(TEST_PYTHON_TARGET) $(BUILD_PATH)
+	python $(BUILD_PATH)/$(TEST_PYTHON_TARGET) $(BUILD_PATH) $(TEST_DIR)
+
 	@echo ""
 	@echo ""
-	$(BUILD_PATH)/$(TEST_TARGET) --log_level=test_suite
+	@$(BUILD_PATH)/$(TEST_TARGET) --log_level=message
 
 $(BUILD_PATH)/$(TEST_TARGET): $(TEST_OBJ)
 	$(CXX) $(TEST_LDFLAGS) $^ -o $@

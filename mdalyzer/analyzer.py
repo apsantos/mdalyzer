@@ -42,7 +42,7 @@ class analyzer(object):
     ## \var trajectory
     # \internal
     # \brief Python object that analyzer is attached to
-    # \sa mdalyzer.trajectory
+    # \sa trajectory.trajectory
     
     ## \var file_name
     # \internal
@@ -372,4 +372,42 @@ class msd(analyzer):
         for t in types:
             self.types.remove(t)
             self.cpp.deleteType(t)
+    
+## Computes the radial distribution function
+# 
+# The radial distribution function \f$ g(r) \f$ is calculated averaging over all particles and frames.
+# It is calculated using particle binning
+# \f[ g(r_i < r \le r_o) = \frac{\langle \sum \delta(r_i < r \le r_o) \rangle}{V(r_i, r_o)\langle\rho\rangle} \f]
+# where \f$ r_i \f$ and \f$ r_o \f$ are the inner and outer radial distances, \f$ V(r_i, r_o) \f$ is the
+# volume defined by the spherical shell with those radii, \f$ \langle \rho \rangle \f$ is the average
+# number density, \f$ \delta \f$ is a function counting one if a particle lies within the radial distance and zero
+# otherwise, and the sum and average are taken over all particles and set frames.
+class rdf(analyzer):
+    ## Initialize a radial distribution function calculator
+    # \param traj Python trajectory to attach to
+    # \param file_name the full file name to output
+    # \param bin_size radial distance to use to bin particles
+    # \param max_radius (if set) how far out to compute g(r), defaults to maximum allowed in first frame
+    # \param origins the skip between frames for time origins (1 = every frame)
+    # \param name (if set) unique string name for the analyzer
+    #
+    # \b Examples:
+    # \code
+    # # use every frame as a time origin, using a finer bin size but all particles
+    # analyzer.rdf(traj=my_traj, bin_size=0.1)
+    #
+    # # use every fifth frame as an origin with max radius of 5
+    # analyzer.rdf(traj=my_traj, origins=5, bin_size=0.5, max_radius=5.0)
+    # \endcode
+    #
+    # \note Due to periodicity, max_radius cannot exceed twice the shortest box edge length during the simulation
+    def __init__(self, traj, file_name='rdf.dat', origins=1, bin_size=1.0, max_radius=0.0, name=None):
+        analyzer.__init__(self, traj, file_name, name)
+        self.bin_size = bin_size
+        self.max_radius = max_radius
+        self.origins = origins
+        
+        self.cpp = libmdalyzer.RadialDistributionFunction(self.trajectory.cpp, self.file_name, self.bin_size, self.max_radius, self.origins)
+        self.trajectory.cpp.addCompute(self.cpp, self.name)
+        
     

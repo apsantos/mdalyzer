@@ -19,6 +19,7 @@
 #include "TemperatureProfile.h"
 #include "MeanSquaredDisplacement.h"
 #include "Clustering.h"
+#include "RadialDistributionFunction.h"
 
 #include "VectorMath.h"
 
@@ -57,5 +58,6 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     export_TemperatureProfile();
     export_MeanSquaredDisplacement();
     export_Clustering();
+    export_RadialDistributionFunction();
     }
 

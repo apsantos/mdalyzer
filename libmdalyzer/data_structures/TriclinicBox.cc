@@ -97,6 +97,19 @@ void TriclinicBox::minImage(Vector3<double>& vec) const
     vec.x -= m_length.x * img.x;
     }
 
+/*!
+ * Uses the reciprocal lattice to determine the nearest edge distances
+ * \return 3d vector of the edge distances
+ */
+Vector3<double> TriclinicBox::getNearestPlaneDistance() const
+    {
+    Vector3<double> dist;
+    dist.x = m_length.x/sqrt(1.0 + m_tilt.x*m_tilt.x + (m_tilt.x*m_tilt.z - m_tilt.y)*(m_tilt.x*m_tilt.z - m_tilt.y));
+    dist.y = m_length.y/sqrt(1.0 + m_tilt.z*m_tilt.z);
+    dist.z = m_length.z;
+    return dist;
+    }
+
 void export_TriclinicBox()
     {
     using namespace boost::python;

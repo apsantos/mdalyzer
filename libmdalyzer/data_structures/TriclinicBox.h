@@ -53,6 +53,9 @@ class TriclinicBox
         
         //! computes the minimum image of a vector between particles in the box
         void minImage(Vector3<double>& vec) const;
+        
+        //! gets the shortest distance between planes in the box
+        Vector3<double> getNearestPlaneDistance() const;
     
     private:
         Vector3<double> m_length;   //!< box edge lengths

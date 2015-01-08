@@ -8,34 +8,6 @@ import libmdalyzer
 
 ##
 # \package mdalyzer.trajectory
-# \brief Defines Python wrappers to the Trajectory Objects
-#
-# Trajectories hold data on molecular simulations; this data is then analyzed by analyzers. Data includes positions, velocities, particle type/name, masses and diameters.
-
-## \internal
-# \brief Abstract definition of a Trajectory
-# 
-class trajectory(object):
-    ## \internal
-    # \brief initializes a trajectory
-    #
-    """Base class for Trajectory"""
-    def __init__(self):
-        self.cpp = None
-    
-    ## \internal
-    # \brief Reads the trajectory and runs the analysis (only if analyzers are attached)
-    #
-    # \b Examples:
-    # \code
-    # #  Two pdb files separated by 2.0 ts
-    # t = trajectory.pdb( files=['frame1.pdb','frame2.pdb'], time_step=2.0)
-    #
-    # # add analyzers, see analyzer.py documentation
-    # # analyze
-    # t.analyze()
-    # \endcode
-    #
 # \brief Defines Python wrappers to the Trajectory methods
 #
 # Trajectories read and store simulation data in memory. Each implementation of trajectory contains methods

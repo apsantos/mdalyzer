@@ -24,9 +24,6 @@
 class PDBTrajectory : public Trajectory
     {
     public:
-        //! default constructor
-        PDBTrajectory();
-        
         //! constructor with timestep and frame terminator
         PDBTrajectory(double timestep);
         

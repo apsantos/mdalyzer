@@ -76,10 +76,7 @@ class trajectory(object):
     # t = trajectory.xyz(files='foo.xyz')
     # t.set_box(lx=10.0, ly=5.0, lz=22.0)
     #
-    # # set an 2D rectangular box
-    # t.set_box( lx=10.0, ly=10.0)
-    #
-    # # set an Box with a tilt
+    # # set a box with a tilt
     # t.set_box( lx=10.0, ly=10.0, lz=5.0, xy=0.5, yz=0.2)
     # \endcode
     def set_box(self, lx, ly, lz, xy=0.0, xz=0.0, yz=0.0):
@@ -313,11 +310,7 @@ class pdb(trajectory):
 #  Binary file with multiple timestep configurations
 #  
 class dcd(trajectory):
-    """DCD trajectory object
-       Make sure that all other trajectory classes preceed the dcd class, 
-       as it depends on all others
-    """
-    ## \internal
+    ##
     # \brief Initialize dcd trajectory
     # \param dcd_file trajectory file
     # \param i_file initial trajectory/Frame file name needed for DCD
@@ -337,7 +330,7 @@ class dcd(trajectory):
     # # Define the output frequency output every 1000 timesteps, with a 0.001 (unit) timestep
     # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.xyz', time_step=0.001, freq=1000)
     #
-    # # Define the ininitail file type
+    # # Define the initial file type
     # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.pdb', i_type='pdb')
     # \endcode
     #

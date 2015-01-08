@@ -20,7 +20,7 @@
 
 BOOST_AUTO_TEST_SUITE(HOOMDXML)
 //! test all information is read from a single frame
-BOOST_AUTO_TEST_CASE(HOOMDXML_read_frame)
+BOOST_AUTO_TEST_CASE(read_frame)
     {
 	HOOMDXMLTrajectory traj(1.0);
 	traj.addFile("test/unit/hoomd/frame.xml.1");
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(HOOMDXML_read_frame)
 	test_read<HOOMDXMLTrajectory>(traj,config);
     }
 //! test all information is read from multiple frames
-BOOST_AUTO_TEST_CASE(HOOMDXML_read_multiframes)
+BOOST_AUTO_TEST_CASE(read_multi_files)
     {
     HOOMDXMLTrajectory traj(1.0);
     traj.addFile("test/unit/hoomd/frame.xml.1");
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(HOOMDXML_read_multiframes)
     test_multiframe<HOOMDXMLTrajectory>(traj, config);
     }
 //! test file can be read if positions are not set (special first field)
-BOOST_AUTO_TEST_CASE(HOOMDXML_read_only_velocity)
+BOOST_AUTO_TEST_CASE(read_only_velocity)
     {
     HOOMDXMLTrajectory traj(1.0);
     traj.addFile("test/unit/hoomd/frame.xml.only_velocity");
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(HOOMDXML_read_only_velocity)
     BOOST_CHECK_CLOSE(velocities[1].z, -3.0, test_very_close);
     }
 //! test exceptions are thrown for badly formed xml
-BOOST_AUTO_TEST_CASE(HOOMDXML_exceptions)
+BOOST_AUTO_TEST_CASE(exceptions)
     {
     // file not found
         {

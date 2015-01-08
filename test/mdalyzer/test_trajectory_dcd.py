@@ -13,8 +13,8 @@ class trajectory_dcd_tests(unittest.TestCase):
     ##
     # \brief test constructors
     def test_init(self):
-        dcd_name='test/unit/dcd/frame.dcd.2'
-        i_name='test/unit/hoomd/frame.xml.1'
+        dcd_name = 'test/unit/dcd/frame.dcd.2'
+        i_name = 'test/unit/hoomd/frame.xml.1'
         trajectory.dcd( dcd_file=dcd_name, i_file=i_name)
         trajectory.dcd( dcd_file=dcd_name, i_file=i_name, i_type='xml')
         trajectory.dcd( dcd_file=dcd_name, i_file=i_name, freq=6)
@@ -36,8 +36,8 @@ class trajectory_dcd_tests(unittest.TestCase):
     ##
     # \brief test that a file name is parsed correctly for a type
     def test_parseFileName(self):
-        dcd_name='test/unit/dcd/frame.dcd.2'
-        i_name='test/unit/hoomd/frame.xml.1'
+        dcd_name = 'test/unit/dcd/frame.dcd.2'
+        i_name = 'test/unit/hoomd/frame.xml.1'
         t = trajectory.dcd( dcd_file=dcd_name, i_file=i_name)
         self.assertEqual('xml', t._parseFileName())
 

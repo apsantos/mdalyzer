@@ -18,6 +18,7 @@
 #include "DensityProfile.h"
 #include "TemperatureProfile.h"
 #include "MeanSquaredDisplacement.h"
+#include "VelocityAutocorrelation.h"
 #include "Clustering.h"
 #include "RadialDistributionFunction.h"
 
@@ -57,6 +58,7 @@ BOOST_PYTHON_MODULE(libmdalyzer)
     export_DensityProfile();
     export_TemperatureProfile();
     export_MeanSquaredDisplacement();
+    export_VelocityAutocorrelation();
     export_Clustering();
     export_RadialDistributionFunction();
     }

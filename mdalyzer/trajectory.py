@@ -243,14 +243,21 @@ class dcd(trajectory):
     # # use a GRO initial configuration with 4 Precision
     # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.gro', precision=4)
     #
-    # # use the DCD file's output frequency output every 1000 timesteps, with a 0.001 (unit) timestep
+    # # Define the output frequency output every 1000 timesteps, with a 0.001 (unit) timestep
     # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.xyz', time_step=0.001, freq=1000)
+    #
+    # # Define the ininitail file type
+    # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.pdb', i_type='pdb')
     # \endcode
     #
     def __init__(self, dcd_file, i_file, i_type=None, precision=3, time_step=0, freq=0):
         self.dcd_file = dcd_file
         self.i_file = i_file
         self.i_file_ptr = None
+        self.traj_types = ['HOOMDXML','XML', 'xml',
+                           'GRO', 'gro',
+                           'PDB', 'pdb',
+                           'XYZ', 'xyz']
         if (i_type == None):
             i_type = self._parseFileName()
         self.i_type = i_type
@@ -279,10 +286,6 @@ class dcd(trajectory):
     # \brief Parses the initial file name to get the file type
     #
     def _parseFileName(self):
-        self.traj_types = ['HOOMDXML','XML', 'xml',
-                           'GRO', 'gro',
-                           'PDB', 'pdb',
-                           'XYZ', 'xyz']
         extension = self.i_file.split('.')
         for t_type in self.traj_types:
             if ( t_type in extension ):

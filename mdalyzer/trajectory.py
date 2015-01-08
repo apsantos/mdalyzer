@@ -1,6 +1,7 @@
 ##
 # \file trajectory.py
 # \author Michael P. Howard
+# \author Andrew P. Santos
 # \date 6 Jaunary 2015
 # \brief Implementation of Python wrappers to the Trajectory methods
 import libmdalyzer
@@ -37,7 +38,7 @@ class trajectory(object):
     # \endcode
     def analyze(self):
         self.cpp.analyze()
-    
+
     ##
     # \brief Attach files to a trajectory for parsing
     # \param files string or Python list of files to parse
@@ -54,7 +55,7 @@ class trajectory(object):
         
         for file in files:
             self.cpp.addFile(file)   
-    
+
     ##
     # \brief Override the trajectory triclinic simulation box to a constant value.
     # \param lx \f$ x \f$ edge length
@@ -74,6 +75,12 @@ class trajectory(object):
     # # set an orthorhombic box for XYZ trajectory
     # t = trajectory.xyz(files='foo.xyz')
     # t.set_box(lx=10.0, ly=5.0, lz=22.0)
+    #
+    # # set an 2D rectangular box
+    # t.set_box( lx=10.0, ly=10.0)
+    #
+    # # set an Box with a tilt
+    # t.set_box( lx=10.0, ly=10.0, lz=5.0, xy=0.5, yz=0.2)
     # \endcode
     def set_box(self, lx, ly, lz, xy=0.0, xz=0.0, yz=0.0):
         if self.cpp is None:
@@ -301,36 +308,75 @@ class pdb(trajectory):
         if files is not None:
             self.add(files)
             
+## Wraps to a DCD file trajectory
+# 
+#  Binary file with multiple timestep configurations
+#  
 class dcd(trajectory):
     """DCD trajectory object
        Make sure that all other trajectory classes preceed the dcd class, 
        as it depends on all others
     """
+    ## \internal
+    # \brief Initialize dcd trajectory
+    # \param dcd_file trajectory file
+    # \param i_file initial trajectory/Frame file name needed for DCD
+    # \param i_type initial trajectory/Frame file type, defalts to None, and tries to find from the file name extensions
+    # \param precision Precision of the data needed if it is a GRO file, defalts to 3
+    # \param time_step trajectory timestep, defalts to 0 and will be determined by the DCD reader
+    # \param freq Number of timesteps between each DCD configuration, defalts to 0 and will be determined by the DCD reader
+    #
+    # \b Examples:
+    # \code
+    # # use the DCD file's output frequency and time step, with an xml initial frame
+    # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.xml')
+    #
+    # # use a GRO initial configuration with 4 Precision
+    # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.gro', precision=4)
+    #
+    # # Define the output frequency output every 1000 timesteps, with a 0.001 (unit) timestep
+    # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.xyz', time_step=0.001, freq=1000)
+    #
+    # # Define the ininitail file type
+    # t = trajectory.dcd( dcd_file='frames.dcd', i_file='frame1.pdb', i_type='pdb')
+    # \endcode
+    #
     def __init__(self, dcd_file, i_file, i_type=None, precision=3, time_step=0, freq=0):
         self.dcd_file = dcd_file
         self.i_file = i_file
         self.i_file_ptr = None
-        if (i_type == None):
-            i_type = self.parseFileName()
+        self.traj_types = ['HOOMDXML','XML', 'xml',
+                           'GRO', 'gro',
+                           'PDB', 'pdb',
+                           'XYZ', 'xyz']
         self.i_type = i_type
+        if (i_type == None):
+            self.i_type = self._parseFileName()
         # create pointer to that trajectory
-        self.i_file_ptr = self.getTraj(i_type, time_step, precision)
+        self.i_file_ptr = self._getTraj(self.i_type, time_step, precision)
         # add the file frame to that pointer
         self.i_file_ptr.addFile(i_file)
 
         self.cpp = libmdalyzer.DCDTrajectory(self.i_file_ptr, self.dcd_file, time_step, freq)
+    ## \var trajectory.dcd.i_file_ptr
+    # \internal
+    # \brief boost shared_ptr to a trajectory object of the initial trajectory
+    #  Needed for the DCDTrajectory constructor
+            
 
+    ## \internal
+    # \brief Raises an error the initial file type is incorrect
+    #
     def _notAtype(self):
         err_str = ('The file type \'%s\' does not exist. Maybe you meant one of these:\n' % self.i_type)
         for t_type in self.traj_types:
             err_str += (t_type + " ")
         raise RuntimeError(err_str)
 
-    def parseFileName(self):
-        self.traj_types = ['HOOMDXML','XML', 'xml',
-                           'GRO', 'gro',
-                           'PDB', 'pdb',
-                           'XYZ', 'xyz']
+    ## \internal
+    # \brief Parses the initial file name to get the file type
+    #
+    def _parseFileName(self):
         extension = self.i_file.split('.')
         for t_type in self.traj_types:
             if ( t_type in extension ):
@@ -338,7 +384,13 @@ class dcd(trajectory):
         self._notAtype()
         return None
 
-    def getTraj(self, t_type, time_step, precision):
+    ## \internal
+    # \brief Parses the initial file name to get the file type
+    # \param t_type initial trajectory/Frame file type
+    # \param time_step trajectory timestep, for the initial trajectory pointer initialization
+    # \param precision Data precision, for the initial trajectory pointer initialization
+    #
+    def _getTraj(self, t_type, time_step, precision):
         if ( t_type in ['HOOMDXML', 'XML', 'xml'] ):
             return libmdalyzer.HOOMDXMLTrajectory(time_step)
 

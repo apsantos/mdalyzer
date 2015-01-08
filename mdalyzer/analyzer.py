@@ -1,6 +1,7 @@
 ##
 # \file analyzer.py
 # \author Michael P. Howard
+# \author Andrew P. Santos
 # \date 6 Jaunary 2015
 # \brief Implementation of Python wrappers to the Analyzer methods
 

@@ -409,5 +409,37 @@ class rdf(analyzer):
         
         self.cpp = libmdalyzer.RadialDistributionFunction(self.trajectory.cpp, self.file_name, self.bin_size, self.max_radius, self.origins)
         self.trajectory.cpp.addCompute(self.cpp, self.name)
+            
+class vacf(analyzer):
+    """Velocity autocorrelation function analyzer"""
+    
+    def __init__(self, traj, file_name='vacf', origins=1, name=None, types=[]):
+        analyzer.__init__(self, traj, file_name, name)
+        self.origins = origins
         
+        self.cpp = libmdalyzer.VelocityAutocorrelation(self.trajectory.cpp, self.file_name, self.origins)
+        self.trajectory.cpp.addCompute(self.cpp, self.name)
+        
+        self.types = []
+        
+        self.add_type(types)
+    
+    def add_type(self, types):
+        """Add types to calculate"""
+        if not isinstance(types, (list,tuple)):
+            types = [types]
+            
+        for t in types:
+            if t not in self.types:
+                self.types += [t]
+                self.cpp.addType(t)
+    
+    def delete_type(self, types):
+        """Remove types to calculate"""
+        if not isinstance(types, (list,tuple)):
+            types = [types]
+            
+        for t in types:
+            self.types.remove(t)
+            self.cpp.deleteType(t)
     

@@ -88,7 +88,6 @@ class trajectory(object):
         self.box = libmdalyzer.TriclinicBox(libmdalyzer.Vector3d(lx,ly,lz), libmdalyzer.Vector3d(xy,xz,yz))
         self.cpp.setBox(self.box)
         
-
 ##
 # \brief HOOMD XML reader
 #

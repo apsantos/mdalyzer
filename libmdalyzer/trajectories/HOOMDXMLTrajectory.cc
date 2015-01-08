@@ -10,6 +10,11 @@
 #include <sstream>
 #include <iostream>
 
+HOOMDXMLTrajectory::HOOMDXMLTrajectory(double dt)
+    : m_xml_dt(dt)
+    {
+    }
+
 /*!
  * Loops over all attached files and calls readFromFile(const std::string& f) on them.
  */
@@ -118,10 +123,9 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                 while (pos_str >> pos_i.x >> pos_i.y >> pos_i.z)
                     {
                     // shift image if necessary
-                    if (has_images)
+                    Vector3<double> image_vec(0.,0.,0.);
+                    if (has_images && img_str >> image_vec.x >> image_vec.y >> image_vec.z)
                         {
-                        Vector3<double> image_vec(0.,0.,0.);
-                        img_str >> image_vec.x >> image_vec.y >> image_vec.z;
                         box.shiftImage(image_vec, pos_i);
                         }
                         
@@ -157,6 +161,13 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame = boost::shared_ptr<Frame>( new Frame(cur_particle) );
                     cur_frame->setVelocities(velocities);
                     }
+                else
+                    {
+                    if (cur_particle != cur_frame->getN())
+                        {
+                        throw std::runtime_error("HOOMDXMLTrajectory: velocity not set for all particles");
+                        }
+                    }
                 }
             
             // process masses    
@@ -182,6 +193,13 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame = boost::shared_ptr<Frame>( new Frame(cur_particle) );
                     cur_frame->setMasses(masses);
                     }
+                else
+                    {
+                    if (cur_particle != cur_frame->getN())
+                        {
+                        throw std::runtime_error("HOOMDXMLTrajectory: masses not set for all particles");
+                        }
+                    }
                 }
             
             // process diameters
@@ -206,13 +224,14 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame = boost::shared_ptr<Frame>( new Frame(cur_particle) );
                     cur_frame->setDiameters(diameters);
                     }
+                else
+                    {
+                    if (cur_particle != cur_frame->getN())
+                        {
+                        throw std::runtime_error("HOOMDXMLTrajectory: diameters not set for all particles");
+                        }
+                    }
                 }
-            
-             if (cur_frame)
-                {
-                cur_frame->setTime(config.attribute("time_step").as_double());
-                cur_frame->setBox(box);                    
-                } 
             
             // process types
             node = config.child("type");
@@ -236,7 +255,20 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame = boost::shared_ptr<Frame>( new Frame(cur_particle) );
                     cur_frame->setNames(names);
                     }
-                }  
+                else
+                    {
+                    if (cur_particle != cur_frame->getN())
+                        {
+                        throw std::runtime_error("HOOMDXMLTrajectory: types not set for all particles");
+                        }
+                    }
+                } 
+                
+            if (cur_frame)
+                {
+                cur_frame->setTime(m_xml_dt*config.attribute("time_step").as_double());
+                cur_frame->setBox(box);                    
+                } 
             }
         else
             {
@@ -256,5 +288,5 @@ void export_HOOMDXMLTrajectory()
     {
     using namespace boost::python;
     class_<HOOMDXMLTrajectory, boost::shared_ptr<HOOMDXMLTrajectory>, bases<Trajectory>, boost::noncopyable>
-    ("HOOMDXMLTrajectory");
+    ("HOOMDXMLTrajectory",init<double>());
     }

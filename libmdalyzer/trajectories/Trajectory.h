@@ -105,10 +105,10 @@ class Trajectory : boost::noncopyable
         void removeName(const std::string& name);
         
         //! get a type id by name
-        unsigned int getTypeByName(const std::string& name);
+        unsigned int getTypeByName(const std::string& name) const;
         
         //! get a particle name by type id
-        std::string getNameByType(unsigned int type);
+        std::string getNameByType(unsigned int type) const;
         
         //! get total number of particle types in the map
         unsigned int getNumTypes() const

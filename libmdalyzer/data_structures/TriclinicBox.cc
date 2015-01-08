@@ -15,7 +15,7 @@ TriclinicBox::TriclinicBox()
 /*!
  * \param length box edge lengths
  */   
-TriclinicBox::TriclinicBox(Vector3<double> length)
+TriclinicBox::TriclinicBox(const Vector3<double>& length)
     : m_length(length), m_tilt(Vector3<double>(0.0,0.0,0.0))
     {}
 
@@ -23,7 +23,7 @@ TriclinicBox::TriclinicBox(Vector3<double> length)
  * \param length box edge lengths
  * \param tilt box tilt factors (dimensionless)
  */
-TriclinicBox::TriclinicBox(Vector3<double> length, Vector3<double> tilt)
+TriclinicBox::TriclinicBox(const Vector3<double>& length, const Vector3<double>& tilt)
     : m_length(length), m_tilt(tilt)
     {}
 
@@ -35,7 +35,7 @@ TriclinicBox::TriclinicBox(Vector3<double> length, Vector3<double> tilt)
  * Formulae come from the
  * <a href="https://codeblue.umich.edu/hoomd-blue/doc/page_box.html">HOOMD-blue periodic boundary documentation</a>.
  */
-TriclinicBox::TriclinicBox(Vector3<double> v1, Vector3<double> v2, Vector3<double> v3)
+TriclinicBox::TriclinicBox(const Vector3<double>& v1, const Vector3<double>& v2, const Vector3<double>& v3)
     {
     // start by normalizing along x
     m_length.x = sqrt(v1.dot(v1));
@@ -71,13 +71,51 @@ void TriclinicBox::shiftImage(const Vector3<double>& image, Vector3<double>& pos
     pos.y += image.y * m_length.y + m_tilt.z * image.z * m_length.z;
     pos.z += image.z * m_length.z;
     }
+    
+/*!
+ * \param vec the vector to compute the minimum image of
+ * \note calls to round() have some overhead but are necessary when the vector may be
+ * multiple images of the box long
+ */
+void TriclinicBox::minImage(Vector3<double>& vec) const
+    {
+    Vector3<double> img;
+    img.x = round(vec.x / m_length.x);
+    img.y = round(vec.y / m_length.y);
+    img.z = round(vec.z / m_length.z);
+    
+    // z boundaries
+    vec.z -= m_length.z*img.z;
+    vec.y -= m_length.z*m_tilt.z*img.z;
+    vec.x -= m_length.z*m_tilt.y*img.z;
+    
+    // y boundaries
+    vec.y -= m_length.y * img.y;
+    vec.x -= m_length.y*m_tilt.x*img.y;
+    
+    // x boundaries
+    vec.x -= m_length.x * img.x;
+    }
+
+/*!
+ * Uses the reciprocal lattice to determine the nearest edge distances
+ * \return 3d vector of the edge distances
+ */
+Vector3<double> TriclinicBox::getNearestPlaneDistance() const
+    {
+    Vector3<double> dist;
+    dist.x = m_length.x/sqrt(1.0 + m_tilt.x*m_tilt.x + (m_tilt.x*m_tilt.z - m_tilt.y)*(m_tilt.x*m_tilt.z - m_tilt.y));
+    dist.y = m_length.y/sqrt(1.0 + m_tilt.z*m_tilt.z);
+    dist.z = m_length.z;
+    return dist;
+    }
 
 void export_TriclinicBox()
     {
     using namespace boost::python;
     
     class_<TriclinicBox, boost::shared_ptr<TriclinicBox> >("TriclinicBox")
-    .def(init< Vector3<double> >())
-    .def(init< Vector3<double>, Vector3<double> >())
-    .def(init< Vector3<double>, Vector3<double>, Vector3<double> >());
+    .def(init< const Vector3<double>& >())
+    .def(init< const Vector3<double>&, const Vector3<double>& >())
+    .def(init< const Vector3<double>&, const Vector3<double>&, const Vector3<double>& >());
     }

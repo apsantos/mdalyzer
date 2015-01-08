@@ -95,22 +95,22 @@ void Trajectory::removeName(const std::string& name)
  * \param name particle name
  * \returns integer id for type
  */
-unsigned int Trajectory::getTypeByName(const std::string& name)
+unsigned int Trajectory::getTypeByName(const std::string& name) const
     {
-    std::map<std::string, unsigned int>::iterator cur_type = m_type_map.find(name);
+    std::map<std::string, unsigned int>::const_iterator cur_type = m_type_map.find(name);
     if (cur_type == m_type_map.end())
         throw std::runtime_error("Trajectory: name not found");
         
-    return m_type_map[name];
+    return cur_type->second;
     }
 
 /*!
  * \param type integer id for type
  * \returns name particle name
  */
-std::string Trajectory::getNameByType(unsigned int type)
+std::string Trajectory::getNameByType(unsigned int type) const
     {
-    std::map<std::string, unsigned int>::iterator cur_type;
+    std::map<std::string, unsigned int>::const_iterator cur_type;
     for (cur_type = m_type_map.begin(); cur_type != m_type_map.end(); ++cur_type)
         {
         if (cur_type->second == type)
@@ -267,62 +267,23 @@ void Trajectory::analyze()
     {
     std::map< std::string, boost::shared_ptr<Analyzer> >::iterator cur_analyzer;
     
-    // main execution loop, so we want to catch exceptions as they are thrown and abort
-    try
-        {
-        // read into memory from Frames or by overriden read()
-        if (m_must_read_from_file)
-            read();
+    // read into memory from Frames or by overriden read()
+    if (m_must_read_from_file)
+        read();
 
-        // sort and validate the frames
-        sortFrames();
-        validate();
-        parse();
-        
-        // enter the compute loop
-        // if computes should be cleaned up, they need to do this after they are done
-        for (cur_analyzer = m_analyzers.begin(); cur_analyzer != m_analyzers.end(); ++cur_analyzer)
-            {
-            // perform the evaluation
-            cur_analyzer->second->evaluate();
-            }
-        }
-    catch (std::exception const & e)
+    // sort and validate the frames
+    sortFrames();
+    validate();
+    parse();
+    
+    // enter the compute loop
+    // if computes should be cleaned up, they need to do this after they are done
+    for (cur_analyzer = m_analyzers.begin(); cur_analyzer != m_analyzers.end(); ++cur_analyzer)
         {
-        std::cout<<e.what()<<std::endl;
-        throw e;
+        // perform the evaluation
+        cur_analyzer->second->evaluate();
         }
     }
-
-//! Boost Python wrapper for the Trajectory
-/*!
- * read() is a virtual function, so Boost Python needs an explicit wrapper for it. We want to be able to instantiate
- * plain Trajectory classes in case in the future the user could attach Frame content on the scripting level without
- * using a reader, so read() cannot be pure virtual. This means that we must default to an empty read() implementation.
- */
-// struct TrajectoryWrap : public Trajectory, boost::python::wrapper<Trajectory>
-//     {
-//     TrajectoryWrap() : Trajectory() {}
-//     
-//     void read()
-//         {
-//         if (boost::python::override f = this->get_override("read"))
-//             f();
-//         else
-//             Trajectory::read();
-//         }
-//         
-//     void default_read() { this->Trajectory::read(); }
-//     
-//     void addFile(const std::string& file)
-//         {
-//         if (boost::python::override f = this->get_override("addFile"))
-//             f(file);
-//         else
-//             Trajectory::addFile(file);
-//         }
-//     void default_addFile(const std::string& file) { this->Trajectory::addFile(file); }
-//     };
 
 void export_Trajectory()
     {

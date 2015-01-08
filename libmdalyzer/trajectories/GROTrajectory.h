@@ -32,10 +32,7 @@
  */
 class GROTrajectory : public Trajectory
     {
-    public:
-        //! default constructor
-        GROTrajectory();
-        
+    public:        
         //! constructor with precision
         GROTrajectory(unsigned int precision);
         
@@ -45,19 +42,17 @@ class GROTrajectory : public Trajectory
         //! reads all attached files into Frames
         virtual void read();
     private:
-        unsigned int m_n_pos_chars;         //!< number of chars in a position chunk
-        unsigned int m_n_vel_chars;         //!< number of chars in a velocity chunk
+        const unsigned int m_n_gro_digits;  //!< decimal precision of positions
+        unsigned int m_gro_line_length;     //!< minimum character length for a line
         
         //! reads a single GRO file stream into multiple Frames
         void readFromFile(std::ifstream& file);
         
-        //! parses a fixed length substring
-        template <typename T>
-        inline T readSubstring(const std::string& line,
-                               std::istringstream& line_parser,
-                               unsigned int start,
-                               unsigned int len,
-                               const std::string& errmsg);
+        inline void readLine(const std::string& line,
+                             std::string& name,
+                             int& particle_id,
+                             Vector3<double>& pos,
+                             Vector3<double>& vel) const;
     };
 
 //! Python export for GROTrajectory

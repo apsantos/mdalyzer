@@ -349,11 +349,11 @@ class dcd(trajectory):
                            'GRO', 'gro',
                            'PDB', 'pdb',
                            'XYZ', 'xyz']
-        if (i_type == None):
-            i_type = self._parseFileName()
         self.i_type = i_type
+        if (i_type == None):
+            self.i_type = self._parseFileName()
         # create pointer to that trajectory
-        self.i_file_ptr = self._getTraj(i_type, time_step, precision)
+        self.i_file_ptr = self._getTraj(self.i_type, time_step, precision)
         # add the file frame to that pointer
         self.i_file_ptr.addFile(i_file)
 

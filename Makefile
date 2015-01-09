@@ -70,7 +70,8 @@ check: all $(BUILD_PATH)/$(TEST_TARGET)
 
 	@echo ""
 	@echo ""
-	@$(BUILD_PATH)/$(TEST_TARGET) --log_level=message
+	@mkdir -p $(BUILD_PATH)/$(TEST_DIR)/tmp
+	@$(BUILD_PATH)/$(TEST_TARGET) $(BUILD_PATH)/$(TEST_DIR)/tmp --log_level=message
 
 $(BUILD_PATH)/$(TEST_TARGET): $(TEST_OBJ)
 	$(CXX) $(TEST_LDFLAGS) $^ -o $@

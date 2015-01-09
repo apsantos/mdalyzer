@@ -18,30 +18,28 @@ extern "C" {
 
 //! XTC parser
 /*!
- *  Implementation of the Trajectory for XTC file format
+ * Declaration of the Trajectory for the arbitrary precision XTC file format:
  *
- *  \inXTCup trajectories
+ * XDR library is used to read all information (position, box, timestep) at once for each frame.
+ *
+ *  \ingroup trajectories
  */
 class XTCTrajectory : public Trajectory
     {
     public:
         //! default constructor
-        XTCTrajectory() {};
+        XTCTrajectory();
         
         //! default destructor
         virtual ~XTCTrajectory() {};
         
-        //! attach a file to be parsed
-        void addFile(const std::string& f);
-        
         //! reads all attached files into Frame
         virtual void read();
     private:
-        std::vector<std::string> m_files;           //!< List of files to parse
         int end_file;                               //!< Marking the end of each file
         
         //! internal method for reading a single XTC file into a Frame
-        boost::shared_ptr<Frame> readFromFile(XDRFILE* trjFileXDR_, int& natoms_);
+        int readFromFile(XDRFILE* trjFileXDR_, int& natoms_);
     };
 
 //! Python export for XTCTrajectory

@@ -29,6 +29,11 @@
 Clustering::Clustering(boost::shared_ptr<Trajectory> traj, const std::string& file_name, double atom_dist)
     : Analyzer(traj), m_file_name(file_name), m_atom_dist_sq(atom_dist*atom_dist)
     {
+    if ( atom_dist < 0.0 )
+        {
+        // error! negative distance
+        throw std::runtime_error("Clustering input requires a positive distance");
+        }
     }
 
 /*! 

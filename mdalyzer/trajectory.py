@@ -398,4 +398,57 @@ class dcd(trajectory):
         
         else :
             self._notAtype()
+
+##
+# \brief XTC file reader
+#
+# Reads XTC files that contains position, box, and time data.
+#
+# XTC is a binary format that requires XDR library to read. It contains atom positions, box, and timestep
+# information. A single xtc file may contain multiple simulation frames.
+# XDR library contains an internal function that reads all information at once for each frame.
+#
+class xtc(trajectory):
+    ## Initialize a XTC trajectory
+    # \param files File or files to attach
+    #
+    # \b Example:
+    # \code
+    # # create a trajectory from a single file
+    # t = trajectory.xtc(files='trajectory.xtc')
+    # 
+    # # create a trajectory from multiple files
+    # t = trajectory.xtc(files=['frame1.xtc','frame2.xtc'])
+    # \endcode
+    def __init__(self, files=None):
+        self.cpp = libmdalyzer.XTCTrajectory()
             
+        if files is not None:
+            self.add(files)
+
+##
+# \brief TRR file reader
+#
+# Reads TRR files that contains position, velocity, box, and time data.
+#
+# TRR is a binary format that requires XDR library to read. It contains atom positions, velocity,
+# box, and timestep information. A single trr file may contain multiple simulation frames.
+# XDR library contains an internal function that reads all information at once for each frame.
+#
+class trr(trajectory):
+    ## Initialize a TRR trajectory
+    # \param files File or files to attach
+    #
+    # \b Example:
+    # \code
+    # # create a trajectory from a single file
+    # t = trajectory.trr(files='trajectory.trr')
+    # 
+    # # create a trajectory from multiple files
+    # t = trajectory.trr(files=['frame1.trr','frame2.trr'])
+    # \endcode
+    def __init__(self, files=None):
+        self.cpp = libmdalyzer.TRRTrajectory()
+            
+        if files is not None:
+            self.add(files)

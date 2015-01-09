@@ -18,30 +18,28 @@ extern "C" {
 
 //! TRR parser
 /*!
- *  Implementation of the Trajectory for TRR file format
+ * Declaration of the Trajectory for the arbitrary precision TRR file format:
  *
- *  \inTRRup trajectories
+ * XDR library is used to read all information (position, velocity, box, timestep) at once for each frame.
+ *
+ *  \ingroup trajectories
  */
 class TRRTrajectory : public Trajectory
     {
     public:
         //! default constructor
-        TRRTrajectory() {};
+        TRRTrajectory();
         
         //! default destructor
         virtual ~TRRTrajectory() {};
         
-        //! attach a file to be parsed
-        void addFile(const std::string& f);
-        
         //! reads all attached files into Frame
         virtual void read();
     private:
-        std::vector<std::string> m_files;           //!< List of files to parse
         int end_file;                               //!< Marking the end of each file
         
         //! internal method for reading a single TRR file into a Frame
-        boost::shared_ptr<Frame> readFromFile(XDRFILE* trjFileXDR_, int& natoms_);
+        int readFromFile(XDRFILE* trjFileXDR_, int& natoms_);
     };
 
 //! Python export for TRRTrajectory

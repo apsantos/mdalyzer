@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(XTC)
 //! test all information is read from a single frame
 BOOST_AUTO_TEST_CASE(XTC_read_frame)
     {
-	XTCTrajectory traj(3);
+	XTCTrajectory traj;
 	traj.addFile("test/unit/xtc/frame.xtc.1");
 	traj.analyze();
 	
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(XTC_read_frame)
 //! test all information is read from multiple files
 BOOST_AUTO_TEST_CASE(XTC_read_multiframes)
     {
-	XTCTrajectory traj(3);
+	XTCTrajectory traj;
 	traj.addFile("test/unit/xtc/frame.xtc.1");
 	traj.addFile("test/unit/xtc/frame.xtc.2");
 	traj.analyze();
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(XTC_read_multiframes)
 //! test all information is read from a file with multiple frames
 BOOST_AUTO_TEST_CASE(XTC_read_multiframes_singlefile)
     {
-	XTCTrajectory traj(3);
+	XTCTrajectory traj;
 	traj.addFile("test/unit/xtc/frame.xtc.singlefile");
 	traj.analyze();
 	
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(XTC_exceptions)
     {
     // file not found
         {
-        XTCTrajectory traj(3);
+        XTCTrajectory traj;
         traj.addFile("test/unit/xtc/not.a.file.xtc");    
         BOOST_CHECK_THROW(traj.analyze(), std::exception);
         }

@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(TRR)
 //! test all information is read from a single frame
 BOOST_AUTO_TEST_CASE(TRR_read_frame)
     {
-	TRRTrajectory traj(3);
+	TRRTrajectory traj;
 	traj.addFile("test/unit/trr/frame.trr.1");
 	traj.analyze();
 	
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(TRR_read_frame)
 //! test all information is read from multiple files
 BOOST_AUTO_TEST_CASE(TRR_read_multiframes)
     {
-	TRRTrajectory traj(3);
+	TRRTrajectory traj;
 	traj.addFile("test/unit/trr/frame.trr.1");
 	traj.addFile("test/unit/trr/frame.trr.2");
 	traj.analyze();
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(TRR_read_multiframes)
 //! test all information is read from a file with multiple frames
 BOOST_AUTO_TEST_CASE(TRR_read_multiframes_singlefile)
     {
-	TRRTrajectory traj(3);
+	TRRTrajectory traj;
 	traj.addFile("test/unit/trr/frame.trr.singlefile");
 	traj.analyze();
 	
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(TRR_exceptions)
     {
     // file not found
         {
-        TRRTrajectory traj(3);
+        TRRTrajectory traj;
         traj.addFile("test/unit/trr/not.a.file.trr");    
         BOOST_CHECK_THROW(traj.analyze(), std::exception);
         }

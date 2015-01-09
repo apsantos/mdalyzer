@@ -1,5 +1,5 @@
 /*!
- * \file test_HOOMDXMLTrajectory.cc
+ * \file test_DCDTrajectory.cc
  * \author Andrew P. Santos
  * \date 5 January 2015
  * \brief Boost unit tests for DCD reader
@@ -19,7 +19,7 @@
 
 BOOST_AUTO_TEST_SUITE(DCD)
 //! test all information is read from a single frame
-BOOST_AUTO_TEST_CASE(DCD_read_frame)
+BOOST_AUTO_TEST_CASE(read_frame)
     {
 	HOOMDXMLTrajectory traj(1.0);
 	traj.addFile("test/unit/hoomd/frame.xml.1");
@@ -31,8 +31,8 @@ BOOST_AUTO_TEST_CASE(DCD_read_frame)
 	
 	test_read<HOOMDXMLTrajectory>(traj,config);
     }
-//! test all information is read from multiple frames
-BOOST_AUTO_TEST_CASE(DCD_read_multiframes)
+//! test all information is read from multiple files
+BOOST_AUTO_TEST_CASE(read_multi_files)
     {
 	boost::shared_ptr<HOOMDXMLTrajectory> i_traj( new HOOMDXMLTrajectory(1.0) );
     i_traj->addFile("test/unit/hoomd/frame.xml.1");

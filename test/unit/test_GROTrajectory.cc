@@ -1,5 +1,5 @@
 /*!
- * \file GROTrajectory.cc
+ * \file test_GROTrajectory.cc
  * \author Michael P. Howard
  * \date 6 January 2015
  * \brief Boost unit tests for GRO reader
@@ -13,7 +13,7 @@
 BOOST_AUTO_TEST_SUITE(GRO)
 
 //! test all information is read from a single frame
-BOOST_AUTO_TEST_CASE(GRO_read_frame)
+BOOST_AUTO_TEST_CASE(read_frame)
     {
 	GROTrajectory traj(3);
 	traj.addFile("test/unit/gro/frame.gro.1");
@@ -25,8 +25,8 @@ BOOST_AUTO_TEST_CASE(GRO_read_frame)
 	test_read<GROTrajectory>(traj,config);
     }
 
-//! test all information is read from a single frame
-BOOST_AUTO_TEST_CASE(GRO_read_multiframes)
+//! test all information is read from multiple frames
+BOOST_AUTO_TEST_CASE(read_multi_files)
     {
 	GROTrajectory traj(3);
 	traj.addFile("test/unit/gro/frame.gro.1");
@@ -39,8 +39,8 @@ BOOST_AUTO_TEST_CASE(GRO_read_multiframes)
 	test_read<GROTrajectory>(traj,config);
     }
 
-//! test all information is read from a single frame
-BOOST_AUTO_TEST_CASE(GRO_read_multiframes_singlefile)
+//! test all information is read from a single file
+BOOST_AUTO_TEST_CASE(read_multi_frames)
     {
 	GROTrajectory traj(3);
 	traj.addFile("test/unit/gro/frame.gro.singlefile");
@@ -52,7 +52,8 @@ BOOST_AUTO_TEST_CASE(GRO_read_multiframes_singlefile)
 	test_read<GROTrajectory>(traj,config);
     }
 
-BOOST_AUTO_TEST_CASE(GRO_exceptions)
+//! test exception handling
+BOOST_AUTO_TEST_CASE(exceptions)
     {
     // file not found
         {

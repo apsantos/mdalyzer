@@ -2,7 +2,7 @@
  * \file PDBTrajectory.cc
  * \author Sang Beom Kim
  * \author Michael P. Howard
- * \date 30 December 2014
+ * \date 8 January 2015
  * \brief Implementation of PDBTrajectory reader
  */
 #include "PDBTrajectory.h"
@@ -10,15 +10,12 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/python.hpp>
+
 #include <fstream>
 #include <sstream>
 #include <cmath>
 #include <cstdio>
-
-PDBTrajectory::PDBTrajectory()
-    : m_pdb_timestep(1.0)
-    {
-    }
+#include <cstdlib>
 
 PDBTrajectory::PDBTrajectory(double timestep)
     : m_pdb_timestep(timestep)
@@ -70,7 +67,7 @@ void PDBTrajectory::readFromFile(std::ifstream& file)
     // flag for currently reading a model
     bool reading_frame = false;
     // track atoms as they are read to ensure ordering
-    int last_atom_id = 0;
+    unsigned int last_atom_id = 0;
     
     while (getline(file, line))
         {
@@ -92,51 +89,68 @@ void PDBTrajectory::readFromFile(std::ifstream& file)
             // lattice vectors
             double a(0.0), b(0.0), c(0.0);
             // lattice angles
-            double alpha(0.0), beta(0.0), gamma(0.0);
+            double alpha(90.0), beta(90.0), gamma(90.0);
             
             // pdb formatting is a strict punch card, so can use sscanf with fixed widths
-            sscanf(line.c_str(), "%*6s%9lf%9lf%9lf%7lf%7lf%7lf", &a, &b, &c, &alpha, &beta, &gamma);
+            int entries = sscanf(line.c_str(), "%*6s%9lf%9lf%9lf%7lf%7lf%7lf", &a, &b, &c, &alpha, &beta, &gamma);
+            if (entries != 6)
+                {
+                throw std::runtime_error("PDBTrajectory: CRYST1 record must be a b c alpha beta gamma");
+                found_box = false;
+                }
+            else
+                {
+                // extract the box lengths and tilts from the lattice constants
+                // http://lammps.sandia.gov/doc/Section_howto.html (triclinic box)
+                Vector3<double> length, tilt;
+                length.x = a;
+                tilt.x = b*cos(gamma*degrees_to_radians);
+                tilt.y = c*cos(beta*degrees_to_radians);
+                length.y = sqrt(b*b-tilt.x*tilt.x);
+                tilt.z = (b*c*cos(alpha*degrees_to_radians)-tilt.x*tilt.y)/length.y;
+                length.z = sqrt(c*c-tilt.y*tilt.y-tilt.z*tilt.z);
             
-            // extract the box lengths and tilts from the lattice constants
-            // http://lammps.sandia.gov/doc/Section_howto.html (triclinic box)
-            Vector3<double> length, tilt;
-            length.x = a;
-            tilt.x = b*cos(gamma*degrees_to_radians);
-            tilt.y = c*cos(beta*degrees_to_radians);
-            length.y = sqrt(b*b-tilt.x*tilt.x);
-            tilt.z = (b*c*cos(alpha*degrees_to_radians)-tilt.x*tilt.y)/length.y;
-            length.z = sqrt(c*c-tilt.y*tilt.y-tilt.z*tilt.z);
-            
-            box = TriclinicBox(length,tilt);
-            found_box = true;
+                box = TriclinicBox(length,tilt);
+                found_box = true;
+                }
             }
         // particle data, both atom entries look the same
         else if (reading_frame && (line_tag.compare("ATOM  ") == 0 || line_tag.compare("HETATM") == 0))
             {
             // make sure the line is long enough
-            if (line.length() < 46)
+            if (line.length() < 54)
                 {
                 throw std::runtime_error("PDBTrajectory: ATOM line is not long enough");
                 }
+            // get number
+            unsigned int atom_id = atoi(line.substr(6,5).c_str());
             
-            // extract the atom data from scanf
-            int atom_id(0);
-            char atom_name[5];
+            // get name
+            std::string atom_name = line.substr(12,4);
+            boost::algorithm::trim(atom_name);
+            
+            // get position
             Vector3<double> pos_i;
-            sscanf(line.c_str(), "%*6s%5d%4s%*15s%8lf%8lf%8lf", &atom_id, atom_name, &pos_i.x, &pos_i.y, &pos_i.z);
+            pos_i.x = strtod(line.substr(30,8).c_str(),NULL);
+            pos_i.y = strtod(line.substr(38,8).c_str(),NULL);
+            pos_i.z = strtod(line.substr(46,8).c_str(),NULL);
             
             // ensure particle ordering
-            if (atom_id == (last_atom_id+1))
-                {            
-                // push back particle data
-                names.push_back( std::string(atom_name) );
-                positions.push_back(pos_i);
-                last_atom_id = atom_id;
+            if (atom_id > 0)
+                {           
+                if (atom_id != (last_atom_id+1)) 
+                    {
+                    throw std::runtime_error("PDBTrajectory: PDB atoms must be in numerical order starting from 1");
+                    }
                 }
-            else
+                
+            // push back particle data
+            if (atom_name.length() > 0)
                 {
-                throw std::runtime_error("PDBTrajectory: PDB atoms must be in numerical order starting from 1");
+                names.push_back(atom_name);
                 }
+            positions.push_back(pos_i);
+            ++last_atom_id;
             }
         // model begins scanning
         else if (!reading_frame && line_tag.compare("MODEL ") == 0)
@@ -155,6 +169,7 @@ void PDBTrajectory::readFromFile(std::ifstream& file)
             if (line_parser >> dummy_str >> frame_time)
                 {            
                 // scale the extracted timestep by the frame time skip
+                frame_time -= 1.0; // model id begins from 1, so subtract to get time
                 frame_time *= m_pdb_timestep;
                 }
             else
@@ -171,7 +186,14 @@ void PDBTrajectory::readFromFile(std::ifstream& file)
                 cur_frame = boost::shared_ptr<Frame>( new Frame(positions.size()) );
                 cur_frame->setNames(names);
                 cur_frame->setPositions(positions);
-                cur_frame->setBox(box);
+                if (found_box)
+                    {
+                    cur_frame->setBox(box);
+                    }
+                else
+                    {
+                    throw std::runtime_error("PDBTrajectory: TriclinicBox must be set with CRYST1");
+                    }
                 cur_frame->setTime(frame_time);
                 
                 m_frames.push_back(cur_frame);
@@ -185,6 +207,6 @@ void PDBTrajectory::readFromFile(std::ifstream& file)
 void export_PDBTrajectory()
     {
     using namespace boost::python;
-    class_<PDBTrajectory, boost::shared_ptr<PDBTrajectory>, bases<Trajectory>, boost::noncopyable>("PDBTrajectory")
-    .def(init<double>());
+    class_<PDBTrajectory, boost::shared_ptr<PDBTrajectory>, bases<Trajectory>, boost::noncopyable>
+    ("PDBTrajectory", init<double>());
     }

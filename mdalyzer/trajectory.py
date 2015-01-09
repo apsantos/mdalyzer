@@ -261,8 +261,8 @@ class xyz(trajectory):
 # with a MODEL record. The MODEL serial number is then stored in columns 11-14.
 # Immediately following the MODEL record, ATOM or HETATM records contain the particle data.
 # The relevant entries of the particle data are:
-# -# 7-11: atom number
-# -# 13-16: atom name
+# -# 7-11: atom number (optional)
+# -# 13-16: atom name (optional)
 # -# 31-38: \f$x\f$ coordinate (3 decimals)
 # -# 39-46: \f$y\f$ coordinate (3 decimals)
 # -# 47-54: \f$z\f$ coordinate (3 decimals)

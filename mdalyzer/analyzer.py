@@ -2,7 +2,7 @@
 # \file analyzer.py
 # \author Michael P. Howard
 # \author Andrew P. Santos
-# \date 6 Jaunary 2015
+# \date 8 Jaunary 2015
 # \brief Implementation of Python wrappers to the Analyzer methods
 
 import libmdalyzer
@@ -410,10 +410,29 @@ class rdf(analyzer):
         
         self.cpp = libmdalyzer.RadialDistributionFunction(self.trajectory.cpp, self.file_name, self.bin_size, self.max_radius, self.origins)
         self.trajectory.cpp.addCompute(self.cpp, self.name)
-            
+
+## Computes the velocity autocorrelation function
+#
+# The velocity autocorrelation function is computed averaging over particles of a given type and multiple time origins
+# \f[ \langle \mathbf{v}(t)\cdot\mathbf{v}(0) \rangle\f]    
+#
+# Currently, the autocorrelation function is computed for all possible lag times in the trajectory.
 class vacf(analyzer):
-    """Velocity autocorrelation function analyzer"""
-    
+    ## Initialize a velocity autocorrelation calculator
+    # \param traj Python trajectory to attach to
+    # \param file_name the full file name to output
+    # \param origins the skip between frames for time origins (1 = every frame)
+    # \param name (if set) unique string name for the analyzer
+    # \param types the particle types to analyze
+    #
+    # \b Examples:
+    # \code
+    # # use every frame as a time origin for type A
+    # analyzer.vacf(traj=my_traj, types='A')
+    #
+    # # use every fifth frame as an origin for types A and C
+    # analyzer.vacf(traj=my_traj, types=['A','C'], origins=5)
+    # \endcode
     def __init__(self, traj, file_name='vacf', origins=1, name=None, types=[]):
         analyzer.__init__(self, traj, file_name, name)
         self.origins = origins
@@ -424,9 +443,21 @@ class vacf(analyzer):
         self.types = []
         
         self.add_type(types)
-    
+        
+    ## Add a type to the calculation
+    # \param types String or Python list of types to attach
+    #
+    # \b Examples:
+    # \code
+    # vacf = analyzer.vacf(traj=my_traj)
+    #
+    # # add a single type
+    # vacf.add_type('A')
+    #
+    # # add multiple types
+    # vacf.add_type(['B','C'])
+    # \endcode      
     def add_type(self, types):
-        """Add types to calculate"""
         if not isinstance(types, (list,tuple)):
             types = [types]
             
@@ -434,9 +465,21 @@ class vacf(analyzer):
             if t not in self.types:
                 self.types += [t]
                 self.cpp.addType(t)
-    
+   
+    ## Remove a type from the calculation
+    # \param types String or Python list of types to remove
+    #
+    # \b Examples:
+    # \code
+    # vacf = analyzer.vacf(traj=my_traj, types=['A','B','C'])
+    #
+    # # remove a single type
+    # vacf.delete_type('A')
+    #
+    # # remove multiple types
+    # vacf.delete_type(['B','C'])
+    # \endcode  
     def delete_type(self, types):
-        """Remove types to calculate"""
         if not isinstance(types, (list,tuple)):
             types = [types]
             

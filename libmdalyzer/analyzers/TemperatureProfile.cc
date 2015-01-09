@@ -251,12 +251,14 @@ void TemperatureProfile::evaluate()
                 {
                 cur_pos.y -= box_len.y*floor(cur_pos.y/box_len.y);
                 const unsigned int cur_idx = (unsigned int)(cur_pos.y/dr.y);
+                bin_cnts.y[type_idx_i][cur_idx] += 1.0;
                 two_ke.y[type_idx_i][cur_idx] += cur_two_ke;
                 }
             if (m_bins.z > 0)
                 {
                 cur_pos.z -= box_len.z*floor(cur_pos.z/box_len.z);
                 const unsigned int cur_idx = (unsigned int)(cur_pos.z/dr.z);
+                bin_cnts.z[type_idx_i][cur_idx] += 1.0;
                 two_ke.z[type_idx_i][cur_idx] += cur_two_ke;
                 }
             }
@@ -266,15 +268,24 @@ void TemperatureProfile::evaluate()
             {
             for (unsigned int cur_bin=0; cur_bin < m_bins.x; ++cur_bin)
                 {
-                temperature.x[i][cur_bin] += two_ke.x[i][cur_bin]/(3.0*(bin_cnts.x[i][cur_bin]-1.0));
+                if (bin_cnts.x[i][cur_bin] > 1)
+                    {
+                    temperature.x[i][cur_bin] += two_ke.x[i][cur_bin]/(3.0*(bin_cnts.x[i][cur_bin]-1.0));
+                    }
                 }
             for (unsigned int cur_bin=0; cur_bin < m_bins.y; ++cur_bin)
                 {
-                temperature.y[i][cur_bin] += two_ke.y[i][cur_bin]/(3.0*(bin_cnts.y[i][cur_bin]-1.0));
+                if (bin_cnts.y[i][cur_bin] > 1)
+                    {
+                    temperature.y[i][cur_bin] += two_ke.y[i][cur_bin]/(3.0*(bin_cnts.y[i][cur_bin]-1.0));
+                    }
                 }
             for (unsigned int cur_bin=0; cur_bin < m_bins.z; ++cur_bin)
                 {
-                temperature.z[i][cur_bin] += two_ke.z[i][cur_bin]/(3.0*(bin_cnts.z[i][cur_bin]-1.0));
+                if (bin_cnts.z[i][cur_bin] > 1)
+                    {
+                    temperature.z[i][cur_bin] += two_ke.z[i][cur_bin]/(3.0*(bin_cnts.z[i][cur_bin]-1.0));
+                    }
                 }
             }
         }

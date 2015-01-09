@@ -53,7 +53,7 @@ void DensityProfile::addType(const std::string& name)
 void DensityProfile::deleteType(const std::string& name)
     {
     std::vector<std::string>::iterator name_it = std::find(m_type_names.begin(), m_type_names.end(), name);
-    //! Throw an error if the type to be deleted is not part of the trajectory
+    // Throw an error if the type to be deleted is not part of the trajectory
     if (name_it == m_type_names.end())
         {
         throw std::runtime_error("DensityProfile cannot remove type that doesn't exit");
@@ -94,7 +94,7 @@ void DensityProfile::evaluate()
     {
     // read the frames 
     std::vector< boost::shared_ptr<Frame> > frames = m_traj->getFrames();
-    //! Check if there is a simulation box; throw an exception if there is not one
+    // Check if there is a simulation box; throw an exception if there is not one
     if (!m_traj->hasBox())
         {
         // error! box not found
@@ -103,7 +103,7 @@ void DensityProfile::evaluate()
     TriclinicBox box = m_traj->getBox();
     Vector3<double> box_len = box.getLength();
 
-    //! Create the density data structure
+    // Create the density data structure
     // reserve memory for density profile
     // density.x[type][bin]
     Vector3<double> dr(box_len.x/((double)m_bins.x),box_len.y/((double)m_bins.y),box_len.z/((double)m_bins.z));
@@ -133,11 +133,11 @@ void DensityProfile::evaluate()
             }
         }
     
-    //! build the density profiles
+    // build the density profiles
     for (unsigned int frame_idx = 0; frame_idx < frames.size(); ++frame_idx)
         {
         boost::shared_ptr<Frame> cur_frame = frames[frame_idx];
-        //! Check that the frame has a box; throw an error if it does not match the trajectory's
+        // Check that the frame has a box; throw an error if it does not match the trajectory's
         if (cur_frame->hasBox())
             {
             TriclinicBox cur_box = cur_frame->getBox();
@@ -147,14 +147,14 @@ void DensityProfile::evaluate()
                 }
             }
         
-        //! Check if Frames have postions; throw an exception if not
+        // Check if Frames have postions; throw an exception if not
         if (!cur_frame->hasPositions())
             {
             throw std::runtime_error("DensityProfile needs positions for all frames");
             }
         std::vector< Vector3<double> > pos = cur_frame->getPositions();
         
-        //! Get types from the Frame or the trajectory
+        // Get types from the Frame or the trajectory
         std::vector<unsigned int> type;
         if (cur_frame->hasTypes())
             {
@@ -165,7 +165,7 @@ void DensityProfile::evaluate()
             type = m_traj->getTypes();
             }
             
-        //! Get masses from the Frame or the trajectory
+        // Get masses from the Frame or the trajectory
         std::vector<double> mass;
         if (cur_frame->hasMasses())
             {

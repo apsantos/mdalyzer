@@ -2,7 +2,7 @@
  * \file test_MeanSquaredDisplacement.cc
  * \author Andrew P. Santos
  * \date 5 January 2015
- * \brief Boost unit tests for DCD reader
+ * \brief Boost unit tests for Mean Squared Displacement
  */
 #include <boost/test/unit_test.hpp>
 #include "test_config.h"

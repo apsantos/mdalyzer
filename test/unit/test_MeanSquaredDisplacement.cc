@@ -88,4 +88,39 @@ BOOST_AUTO_TEST_CASE(MSD_test_output_2_types)
     remove("msd_BBB.dat");
 
     }
+	
+	//! test exception handling
+BOOST_AUTO_TEST_CASE(exceptions)
+    {
+    // file not found
+        {
+        XYZTrajectory traj;
+        traj.addFile("test/unit/xyz/not.a.file.xyz");    
+        BOOST_CHECK_THROW(traj.analyze(), std::exception);
+        }
+    // number not set
+        {
+        XYZTrajectory traj;
+        traj.addFile("test/unit/xyz/frame.xyz.noN");    
+        BOOST_CHECK_THROW(traj.analyze(), std::exception);
+        }
+    // time not set in first frame is fine
+        {
+        XYZTrajectory traj;
+        traj.addFile("test/unit/xyz/frame.xyz.time");    
+        BOOST_CHECK_NO_THROW(traj.analyze());
+        } 
+    // time not set in second frame
+        {
+        XYZTrajectory traj;
+        traj.addFile("test/unit/xyz/frame.xyz.time_missing");    
+        BOOST_CHECK_THROW(traj.analyze(), std::exception);
+        } 
+    // particle is missing a position
+        {
+        XYZTrajectory traj;
+        traj.addFile("test/unit/xyz/frame.xyz.error");    
+        BOOST_CHECK_THROW(traj.analyze(), std::exception);
+        } 
+    }
 BOOST_AUTO_TEST_SUITE_END()

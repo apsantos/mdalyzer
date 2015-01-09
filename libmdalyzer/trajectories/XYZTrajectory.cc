@@ -1,15 +1,23 @@
 /*! 
  * \file XYZTrajectory.cc
  * \author Joseph R. Vella
- * \date 18 December 2014
+ * \author Michael P. Howard
+ * \date 29 December 2014
  * \brief Reads XYZ files
  */
 #include "XYZTrajectory.h"
 
+#include <boost/algorithm/string.hpp>
 #include <boost/python.hpp>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
+/*! By default, an XYZTrajectory always attempts to parse the timestep from the comment line */
+XYZTrajectory::XYZTrajectory()
+    : m_parse_xyz_timestep(true)
+    {
+    }
 
 /*!
  * Loops over all attached files and calls readFromFile on them.
@@ -19,38 +27,16 @@ void XYZTrajectory::read()
     {
     for (unsigned int cur_f = 0; cur_f < m_files.size(); ++cur_f)
         {
-        
         // open XYZ file
         std::ifstream file(m_files[cur_f].c_str());
         if (!file.good())
-        {
-        throw std::runtime_error("XYZTrajectory: cannot find XYZ file " + m_files[cur_f]);
-        }
-        
-        // read frames until the end
-        while ( !file.eof() )
             {
-            m_frames.push_back(readFromFile(file));
+            throw std::runtime_error("XYZTrajectory: cannot find XYZ file " + m_files[cur_f]);
             }
-        
+        readFromFile(file);
         file.close();
         }
     m_must_read_from_file = false;
-    }
-
-/*!
- * \param f file name to attach
- *
- * Any time a new file is attached, the Trajectory must be re-read from file. This could be handled in a smart way
- * flushing the read file list so that only newly added files are read, and not everything. This should be considered
- * in read() in the future.
- *
- * \note error checking for duplicates is currently not enabled, but we will implement this soon.
- */
-void XYZTrajectory::addFile(const std::string& f)
-    {
-    m_must_read_from_file = true;
-    m_files.push_back(f); // error check this later
     }
 
 /*! 
@@ -61,73 +47,110 @@ void XYZTrajectory::addFile(const std::string& f)
  * The simulation box may be triclinic, so we save the tilt factors. If the image properties are supplied, we unwrap the
  * particle positions.
  */
-boost::shared_ptr<Frame> XYZTrajectory::readFromFile(std::ifstream& file)
+void XYZTrajectory::readFromFile(std::ifstream& file)
     {
-        
-    boost::shared_ptr<Frame> cur_frame; //default initialization is null ptr
+    // string container for parsing line by line
+    std::string line;
     
-    std::string line, first_word;   // string for reading line and first-word
-    std::string dummy_str;
-    std::string name_i;
-    
-    
-    TriclinicBox box;               // box information
-    Vector3<double> pos_i;          // position
-    std::vector<Vector3<double> > positions;
-    Vector3<double> vel_i;          // velocity
-    std::vector< Vector3<double> > velocities;
-    unsigned int n_particles = 0;   // number of particles
-    std::vector<std::string> names; // types of atoms
-    
-    // checkers
-    bool has_box;
-	has_box = false;
-    bool has_time_step;
-	has_time_step = false;
-    bool has_velocity;
-	has_velocity = false;
-    
-    // the first line contains number of atoms
-    getline(file, line);
-    std::istringstream iss_line(line);
-    
-    iss_line >> n_particles;
-    
-    
-    // second line is a comment line to be ignored
-    getline(file, line);
-    iss_line.str(line);
-    
-    // read the types and coordinates
-    for (unsigned int i=0; i<n_particles; ++i)
+    while (getline(file, line))
         {
-        
-        getline(file, line);
-        iss_line.str(line);
-        
-        iss_line >> dummy_str >> name_i >> dummy_str
-                 >> pos_i.x >> pos_i.y >> pos_i.z;
+        // skip over empty lines until particle number line
+        if (line.empty())
+            continue;
             
-        positions.push_back(pos_i);
-        names.push_back(name_i);    
+        // first content line is # of particles
+        std::istringstream line_parser(line);
+        unsigned int n_particles(0);
+        if (!(line_parser >> n_particles))
+            {
+            throw std::runtime_error("XYZTrajectory: first line must be number of particles in frame");
+            }
+            
+        // instantiate the Frame
+        boost::shared_ptr<Frame> cur_frame( new Frame(n_particles) );
+        
+        double time_step(0.0);
+        if (getline(file,line))
+            {
+            // if we have parsed other frames, then try to parse
+            if (m_parse_xyz_timestep)
+                {
+                // found a time set, try to parse a time out
+                int found_time = line.find("t=");
+                if (found_time >= 0 && (found_time+2) < (int)line.length())
+                    {
+                    line_parser.str(line.substr(found_time+2));
+                    line_parser.clear();
+                
+                    if ( !(line_parser >> time_step) )
+                        {
+                        // failed to read the timestep as a float, can't use it
+                        m_parse_xyz_timestep = false;
+                        
+                        // if we already pushed back frames with the time, need to throw an error
+                        if (m_frames.size() > 0)
+                            {
+                            throw std::runtime_error("XYZTrajectory: all frames must have time in comment if one does");
+                            }
+                        }
+                    }
+                else
+                    {
+                    // there is no time step switch to auto naming by frame id
+                    m_parse_xyz_timestep = false;
+                    
+                    // if we already pushed back frames with the time, need to throw an error
+                    if (m_frames.size() > 0)
+                        {
+                        throw std::runtime_error("XYZTrajectory: all frames must have time in comment if one does");
+                        }
+                    }
+                }
+                
+            // if parsing is switched off, use the frame id
+            if (!m_parse_xyz_timestep)
+                {
+                time_step = (double)m_frames.size();
+                }
+            cur_frame->setTime(time_step);
+            }
+        else
+            {
+            throw std::runtime_error("XYZTrajectory: a comment line must follow the particle count");
+            }
+            
+        // loop on particles now
+        unsigned int cur_particle(0);
+        std::string name_i;
+        Vector3<double> pos_i;
+        
+        while (cur_particle < cur_frame->getN() && getline(file,line))
+            {
+            line_parser.str(line);
+            line_parser.clear();
+            
+            if (line_parser >> name_i >> pos_i.x >> pos_i.y >> pos_i.z)
+                {
+                boost::algorithm::trim(name_i);
+                if (name_i.length() > 0)
+                    {
+                    cur_frame->setName(cur_particle, name_i);
+                    }
+                cur_frame->setPosition(cur_particle, pos_i);
+                }
+            else
+                {
+                throw std::runtime_error("XYZTrajectory: a particle line is type, x, y, z");
+                }
+            ++cur_particle;
+            }
+            
+        m_frames.push_back(cur_frame);
         }
-    
-    
-        
-    // assign the information to the cur_frame pointer
-    
-        
-    // set cur_frame with n_particles and save information
-    cur_frame = boost::shared_ptr<Frame>( new Frame(n_particles) );
-    cur_frame->setPositions(positions);
-
-	return cur_frame;
 	}
 
 void export_XYZTrajectory()
     {
     using namespace boost::python;
-    class_<XYZTrajectory, boost::shared_ptr<XYZTrajectory>, bases<Trajectory>, boost::noncopyable >
-    ("XYZTrajectory", init< >())
-    .def("addFile", &XYZTrajectory::addFile);
+    class_<XYZTrajectory, boost::shared_ptr<XYZTrajectory>, bases<Trajectory>, boost::noncopyable>("XYZTrajectory");
     }

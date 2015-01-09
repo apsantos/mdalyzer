@@ -2,13 +2,18 @@
  * \file HOOMDXMLTrajectory.cc
  * \author Michael P. Howard
  * \date 16 December 2014
- * \brief Reads HOOMD XML files
+ * \brief Implementation of HOOMDXMLTrajectory reader
  */
 #include "HOOMDXMLTrajectory.h"
 
 #include <boost/python.hpp>
 #include <sstream>
 #include <iostream>
+
+HOOMDXMLTrajectory::HOOMDXMLTrajectory(double dt)
+    : m_xml_dt(dt)
+    {
+    }
 
 /*!
  * Loops over all attached files and calls readFromFile(const std::string& f) on them.
@@ -20,21 +25,6 @@ void HOOMDXMLTrajectory::read()
         m_frames.push_back(readFromFile(m_files[cur_f]));
         }
     m_must_read_from_file = false;
-    }
-
-/*!
- * \param f file name to attach
- *
- * Any time a new file is attached, the Trajectory must be re-read from file. This could be handled in a smart way
- * flushing the read file list so that only newly added files are read, and not everything. This should be considered
- * in read() in the future.
- *
- * \note error checking for duplicates is currently not enabled, but we will implement this soon.
- */
-void HOOMDXMLTrajectory::addFile(const std::string& f)
-    {
-    m_must_read_from_file = true;
-    m_files.push_back(f); // error check this later
     }
 
 /*! 
@@ -133,10 +123,9 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                 while (pos_str >> pos_i.x >> pos_i.y >> pos_i.z)
                     {
                     // shift image if necessary
-                    if (has_images)
+                    Vector3<double> image_vec(0.,0.,0.);
+                    if (has_images && img_str >> image_vec.x >> image_vec.y >> image_vec.z)
                         {
-                        Vector3<double> image_vec(0.,0.,0.);
-                        img_str >> image_vec.x >> image_vec.y >> image_vec.z;
                         box.shiftImage(image_vec, pos_i);
                         }
                         
@@ -172,6 +161,13 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame = boost::shared_ptr<Frame>( new Frame(cur_particle) );
                     cur_frame->setVelocities(velocities);
                     }
+                else
+                    {
+                    if (cur_particle != cur_frame->getN())
+                        {
+                        throw std::runtime_error("HOOMDXMLTrajectory: velocity not set for all particles");
+                        }
+                    }
                 }
             
             // process masses    
@@ -197,6 +193,13 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame = boost::shared_ptr<Frame>( new Frame(cur_particle) );
                     cur_frame->setMasses(masses);
                     }
+                else
+                    {
+                    if (cur_particle != cur_frame->getN())
+                        {
+                        throw std::runtime_error("HOOMDXMLTrajectory: masses not set for all particles");
+                        }
+                    }
                 }
             
             // process diameters
@@ -221,13 +224,14 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame = boost::shared_ptr<Frame>( new Frame(cur_particle) );
                     cur_frame->setDiameters(diameters);
                     }
+                else
+                    {
+                    if (cur_particle != cur_frame->getN())
+                        {
+                        throw std::runtime_error("HOOMDXMLTrajectory: diameters not set for all particles");
+                        }
+                    }
                 }
-            
-             if (cur_frame)
-                {
-                cur_frame->setTime(config.attribute("time_step").as_double());
-                cur_frame->setBox(box);                    
-                } 
             
             // process types
             node = config.child("type");
@@ -251,7 +255,20 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
                     cur_frame = boost::shared_ptr<Frame>( new Frame(cur_particle) );
                     cur_frame->setNames(names);
                     }
-                }  
+                else
+                    {
+                    if (cur_particle != cur_frame->getN())
+                        {
+                        throw std::runtime_error("HOOMDXMLTrajectory: types not set for all particles");
+                        }
+                    }
+                } 
+                
+            if (cur_frame)
+                {
+                cur_frame->setTime(m_xml_dt*config.attribute("time_step").as_double());
+                cur_frame->setBox(box);                    
+                } 
             }
         else
             {
@@ -270,7 +287,6 @@ boost::shared_ptr<Frame> HOOMDXMLTrajectory::readFromFile(const std::string& f)
 void export_HOOMDXMLTrajectory()
     {
     using namespace boost::python;
-    class_<HOOMDXMLTrajectory, boost::shared_ptr<HOOMDXMLTrajectory>, bases<Trajectory>, boost::noncopyable >
-    ("HOOMDXMLTrajectory", init< >())
-    .def("addFile", &HOOMDXMLTrajectory::addFile);
+    class_<HOOMDXMLTrajectory, boost::shared_ptr<HOOMDXMLTrajectory>, bases<Trajectory>, boost::noncopyable>
+    ("HOOMDXMLTrajectory",init<double>());
     }

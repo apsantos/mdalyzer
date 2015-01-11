@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hoomd_xml version="1.5">
+<configuration time_step="100" dimensions="3" natoms="2" >
+<position num="2">
+6.13829517365 -2.72401595116 -3.54159331322
+1.88184201717 1.64225113392 -0.81569391489
+</position>
+<image num="2">
+0 0 0
+0 0 0
+</image>
+<velocity num="2">
+-0.765762686729 0.709045469761 0.86294066906
+-0.892221868038 -1.8560051918 0.817380070686
+</velocity>
+<mass num="2">
+1
+1
+</mass>
+<type num="2">
+A
+A
+</type>
+</configuration>
+</hoomd_xml>

@@ -135,7 +135,7 @@ void RadialDistributionFunction::evaluate()
     outf.precision(8);
 
     outf << "# radial distribution function" << std::endl;
-    outf << "# r    g2(r)\n" << std::endl;
+    outf << "# r    g2(r)" << std::endl;
 
     // dump that output
     double R = m_delR/2.0;

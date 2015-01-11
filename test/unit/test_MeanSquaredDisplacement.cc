@@ -88,4 +88,52 @@ BOOST_AUTO_TEST_CASE(MSD_test_output_2_types)
     remove("msd_BBB.dat");
 
     }
+BOOST_AUTO_TEST_CASE(MSD_exceptions)
+    {
+    
+    // Cannot remove types that don't exist
+        {
+        boost::shared_ptr<HOOMDXMLTrajectory> traj(new HOOMDXMLTrajectory(0.5));
+        traj->addFile("test/unit/msd/frame.xml.1");
+        traj->addFile("test/unit/msd/frame.xml.2");
+        
+        boost::shared_ptr<MeanSquaredDisplacement> msd(new MeanSquaredDisplacement(traj, "msd", 10));
+        BOOST_CHECK_THROW( msd->deleteType("non_type"), std::exception);
+        }
+    // Needs time data
+        {
+        boost::shared_ptr<HOOMDXMLTrajectory> traj(new HOOMDXMLTrajectory(0.5));
+        traj->addFile("test/unit/msd/frame.xml.no_time");
+        traj->addFile("test/unit/msd/frame.xml.2");
+        
+        boost::shared_ptr<MeanSquaredDisplacement> msd(new MeanSquaredDisplacement(traj, "msd", 10));
+        traj->addAnalyzer(msd, "msd");
+        
+        BOOST_CHECK_THROW(traj->analyze(), std::exception);
+        }
+    //Needs positions data
+        {
+        boost::shared_ptr<HOOMDXMLTrajectory> traj(new HOOMDXMLTrajectory(0.5));
+        traj->addFile("test/unit/msd/frame.xml.no_positions");
+        traj->addFile("test/unit/msd/frame.xml.2");
+        
+        boost::shared_ptr<MeanSquaredDisplacement> msd(new MeanSquaredDisplacement(traj, "msd", 10));
+        traj->addAnalyzer(msd, "msd");
+        
+        BOOST_CHECK_THROW(traj->analyze(), std::exception);
+        }
+    // Needs particle types
+        {
+        //!Loadhoomdfilewithnotpyesinthefile
+        boost::shared_ptr<HOOMDXMLTrajectory>traj(new HOOMDXMLTrajectory(0.5));
+        traj->addFile("test/unit/msd/frame.xml.no_types");
+        traj->addFile("test/unit/msd/frame.xml.2");
+        
+        boost::shared_ptr<MeanSquaredDisplacement> msd(new MeanSquaredDisplacement(traj, "msd", 10));
+        traj->addAnalyzer(msd, "msd");
+        
+        BOOST_CHECK_THROW(traj->analyze(), std::exception);
+        }
+    }
+    
 BOOST_AUTO_TEST_SUITE_END()

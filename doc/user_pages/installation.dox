@@ -1,0 +1,103 @@
+/*!
+ * \file installation.dox
+ * \author Michael P. Howard
+ * \date 11 January 2015
+ * \brief Doxygen page for installation guide
+ */
+ 
+/*! \page page_installation Installation
+
+\b Contents:
+- \ref sec_sys_req
+- \ref sec_install
+
+<hr>
+
+\section sec_sys_req System requirements
+The current software is tested to compile under the following dependencies:
+\subsection ssec_python Python 2.7
+Check installed version with
+\code
+python -V
+Python 2.7.8
+\endcode
+The Python developer libraries are also required for compiling against Boost Python. To check the installation path
+of the Python libraries, use
+\code
+find /i/think/python/is/here/ -name Python.h
+/i/think/python/is/here/python2.7/Python.h
+\endcode
+Usually, the libraries are in /usr/include/python2.7/. If the developer libraries are missing, you should install them.
+This can be done either by compiling Python from source or using the appropriate package manager.
+
+\subsection ssec_boost Boost
+Boost version 1.55.0 or newer is recommended, although somewhat older versions of Boost may still be compatible.
+The biggest compatibility issues will be present in the Boost Unit Test suite, which is used for installation
+validation. If you do not need to run these checks, older versions of boost may be acceptable. To check your Boost
+installation,
+\code
+grep BOOST_LIB_VERSION /path/to/boost/version.hpp
+// BOOST_LIB_VERSION must be defined to be the same as BOOST_VERSION
+#define BOOST_LIB_VERSION "1_55"
+\endcode
+Ensure that your Boost installation has been compiled against your Python 2.7 installation to include the Boost.Python
+libraries.
+
+\subsection ssec_doxygen Doxygen (optional)
+Doxygen is optionally required for generating developer documentation. Version 1.8.2 or newer is required:
+\code
+doxygen --version
+1.8.2
+\endcode
+
+\subsection ssec_gcc GCC
+Code is tested to compile under GCC 4.7.2
+\code
+g++ --version
+g++ (SUSE Linux) 4.7.2
+\endcode
+However, any relatively modern version of GCC should be fine. clang and icpc are not tested for support. However, if you
+are bold enough to try these compilers, ensure that you have also made a compatibile installation of Boost.
+<hr>
+
+\section sec_install Installation
+-# Obtain a copy of the source code from the <a href="https://github.com/mphoward/mdalyzer">Github repository</a>
+\code
+git clone https://github.com/mphoward/mdalyzer
+cd mdalyzer
+\endcode
+-# The Makefile contains several user configurable macro options. Edit the Makefile manually to set:
+    - **CC** / **CXX** : C and C++ compilers
+    - \b INSTALL_PATH : installation location for Python module and shared library
+    - \b BUILD_PATH : local directory for building
+    - \b PYTHON_VERSION : your Python major.minor version
+    - \b PYTHON_INCLUDE_PATH : path to Python developer library includes
+    - \b BOOST_LIB_PATH : path to the Boost libraries
+    - \b BOOST_INCLUDE_PATH : path to the Boost headers
+-# Compile the shared library
+\code
+make -j4
+\endcode
+-# Validate the installation (optional)
+\code
+make check -j4
+\endcode
+This will run an automatic testing suite for both the Python API and shared library. Testing of the shared library
+may take some time, so be patient.
+-# Generate documentation (optional)
+\code
+make doc
+\endcode
+User and developer documentation is generated into doc/user and doc/dev respectively.
+-# Install the package
+\code
+make install
+\endcode
+After installation, you \b must ensure that the module has been placed on your $PYTHONPATH in order to conveniently
+import it.
+\code
+export PYTHONPATH=/path/to/mdalyzer:$PYTHONPATH
+\endcode
+Alternatively, install to your local site-packages directory (recommended).
+
+*/

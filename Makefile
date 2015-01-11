@@ -7,7 +7,8 @@ INSTALL_PATH := bin
 BUILD_PATH := build
 PYTHON_VERSION := 2.7
 PYTHON_INCLUDE_PATH := /usr/global/python/2.7.8/include/python2.7/
-BOOST_PATH := /usr/global/boost/1_55_0/
+BOOST_LIB_PATH := /usr/global/boost/1_55_0/lib/
+BOOST_INCLUDE_PATH := /usr/global/boost/1_55_0/include/
 #####
 # end configuration
 #####
@@ -16,22 +17,23 @@ BOOST_PATH := /usr/global/boost/1_55_0/
 TARGET := libmdalyzer
 CXXFLAGS := -fPIC -Wall -Wextra -pedantic -O3
 CFLAGS := $(CXXFLAGS) --std=c99
-LDFLAGS := -shared -Wl,-no-undefined,--export-dynamic -Wl,-soname,$(TARGET).so -L$(BOOST_PATH)/lib -L$(BOOST_PATH)/lib64 -lboost_python -lpython$(PYTHON_VERSION)
+LDFLAGS := -shared -Wl,-no-undefined,--export-dynamic -Wl,-soname,$(TARGET).so -L$(BOOST_LIB_PATH) -lboost_python -lpython$(PYTHON_VERSION)
 
 MODULES := analyzers extern data_structures python trajectories utils
 SRC_DIR := $(addprefix $(TARGET)/,$(MODULES))
-BUILD_DIR := $(addprefix $(BUILD_PATH)/$(TARGET)/,$(MODULES)) $(BUILD_PATH)/test/unit
+BUILD_DIR := $(addprefix $(BUILD_PATH)/$(TARGET)/,$(MODULES))
 
 SRC_CXX := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cc))
 SRC_CC := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.c))
 OBJ := $(patsubst $(TARGET)/%.cc,$(BUILD_PATH)/$(TARGET)/%.o,$(SRC_CXX)) $(patsubst $(TARGET)/%.c, $(BUILD_PATH)/$(TARGET)/%.o,$(SRC_CC))
-INCLUDES := $(addprefix -I,$(SRC_DIR)) -I$(PYTHON_INCLUDE_PATH) -I$(BOOST_PATH)/include
+INCLUDES := $(addprefix -I,$(SRC_DIR)) -I$(PYTHON_INCLUDE_PATH) -I$(BOOST_INCLUDE_PATH)
 ### end shared library ###
 
 ### for compiling boost unit tests ###
 TEST_TARGET := test_libmdalyzer
 TEST_DIR := test
 TEST_SRC_DIR := $(TEST_DIR)/unit
+TEST_BUILD_DIR := $(BUILD_PATH)/$(TEST_SRC_DIR)
 TEST_SRC := $(wildcard $(TEST_SRC_DIR)/*.cc)
 TEST_OBJ := $(patsubst $(TEST_SRC_DIR)/%.cc,$(BUILD_PATH)/$(TEST_SRC_DIR)/%.o,$(TEST_SRC))
 TEST_CXXFLAGS := -Wall -Wextra -pedantic -O3
@@ -52,6 +54,11 @@ $1/%.o: %.cc
 	$(CXX) $(INCLUDES) $(CXXFLAGS) -c $$< -o $$@
 $1/%.o: %.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c $$< -o $$@
+endef
+
+define make-test-goal
+$1/%.o : %.cc
+	$(CXX) $(TEST_CXXFLAGS) $(INCLUDES) -c $$< -o $$@
 endef
 
 .PHONY: all checkdirs clean install check doc py
@@ -77,9 +84,11 @@ $(BUILD_PATH)/$(TEST_TARGET): $(TEST_OBJ)
 	$(CXX) $(TEST_LDFLAGS) $^ -o $@
 
 # recursively builds subdirectories as needed
-checkdirs: $(BUILD_DIR)
+checkdirs: $(BUILD_DIR) $(TEST_BUILD_DIR)
 
 $(BUILD_DIR):
+	@mkdir -p $@
+$(TEST_BUILD_DIR):
 	@mkdir -p $@
 
 # cleanup the build objects and the python byte code
@@ -94,6 +103,8 @@ install: all
 
 doc:
 	@doxygen doc/Doxyfile_user.in
+	@doxygen doc/Doxyfile_dev.in
 
 # iteratively define build rules for subdirectories
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
+$(eval $(call make-test-goal, $(TEST_BUILD_DIR)))

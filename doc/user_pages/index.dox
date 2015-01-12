@@ -1,7 +1,39 @@
 /*! \mainpage
 
+# Welcome to mdalyzer!
+
+mdalyzer is a user friendly analysis tool for molecular simulation.
+
+The following links will guide you through installation and use.
+
 -# \subpage page_installation
--# \subpage page_getting_started
+-# \subpage quick_start
 -# <a href="namespacemdalyzer.html"><b>User guide</b></a>
--# \subpage page_about_us
+-# \subpage about_us
+
+
+
+## Capabilities
+
+|Input formats                             | Analysis methods |
+|------------------------------------------|------------------|
+| XYZ        |    Mean-squared displacement        |
+| PDB        |    Velocity autocorrelation function|
+| HOOMDXML   |    Cluster identification           |
+| GRO        |    Pair distribution function       |
+| DCD        |    Density profile                  |
+| TRR / XTC  |    Temperature profile              |
+
+<b>Plotting</b>
+
+mdalyzer interfaces well with <a href="http://matplotlib.org/">matplotlib</a>
+
+## How it works
+
+mdalyzer is composed of a python interface that calls readers and analysis algorithms written in C++.
+
+mdalyzer users interact with the python level.  Developers may add functionality by adding C++ readers and analyzers.
+
+![alt text](../layout2.png)
+
 */

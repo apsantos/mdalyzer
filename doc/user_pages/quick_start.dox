@@ -4,9 +4,9 @@ About us section
 /*! \page quick_start Quick start
 Here is a general outline for how to get started
 
-#### 1. Install mdalyzer, see the instillation guide
+#### 1. Install mdalyzer, see the \subpage page_installation
 
-#### 2. Import data from molecular dynamics packages
+#### 2. Import data from molecular dynamics packages (<a href="namespacemdalyzer_1_1trajectory.html">acceptable formats</a>)
 
 #### 3. Write a simple python script called "test.py"
 
@@ -29,4 +29,7 @@ $ python test.py
 
 #### 5. Process the output
 You should now have a file called "msd_A.dat" which contains the mean-squared displacement of the particles as  a function of the time units used in the simulation.  This can be used to calculate the self-diffusion coefficient, for example.
+
+<h3></h3>
+The <a href="namespacemdalyzer.html"><b>User guide</b></a> documents the other input formats and types analyses that can be performed.  Enjoy mdalyzing!
 */
